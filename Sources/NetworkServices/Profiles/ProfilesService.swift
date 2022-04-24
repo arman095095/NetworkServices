@@ -1,0 +1,114 @@
+//
+//  ProfilesService.swift
+//  
+//
+//  Created by Арман Чархчян on 10.04.2022.
+//
+
+import FirebaseFirestore
+
+public protocol ProfilesServiceProtocol {
+    func getProfileInfo(userID: String, completion: @escaping (Result<ProfileNetworkModelProtocol,Error>) -> ())
+    func getFirstProfilesIDs(completion: @escaping (Result<[String],Error>) -> Void)
+    func getNextProfilesIDs(completion: @escaping (Result<[String],Error>) -> Void)
+}
+
+public final class ProfilesService {
+    private let networkServiceRef: Firestore
+    private var lastProfile: DocumentSnapshot?
+    
+    private var usersRef: CollectionReference {
+        return networkServiceRef.collection(URLComponents.Paths.users.rawValue)
+    }
+    
+    public init(networkService: Firestore) {
+        self.networkServiceRef = networkService
+    }
+}
+
+extension ProfilesService: ProfilesServiceProtocol {
+
+    public func getFirstProfilesIDs(completion: @escaping (Result<[String],Error>) -> Void) {
+        if !InternetConnectionManager.isConnectedToNetwork() {
+            completion(.failure(ConnectionError.noInternet))
+        }
+        let query = usersRef.order(by: URLComponents.Parameters.lastActivity.rawValue, descending: true).limit(to: RequestLimits.users.rawValue)
+        getFirstUsersIDs(query: query, completion: completion)
+    }
+    
+    public func getNextProfilesIDs(completion: @escaping (Result<[String],Error>) -> Void) {
+        if !InternetConnectionManager.isConnectedToNetwork() {
+            completion(.failure(ConnectionError.noInternet))
+        }
+        let query = usersRef.order(by: URLComponents.Parameters.lastActivity.rawValue, descending: true).limit(to: RequestLimits.users.rawValue)
+        getNextUsersIDs(query: query, completion: completion)
+    }
+
+    public func getProfileInfo(userID: String, completion: @escaping (Result<ProfileNetworkModelProtocol,Error>) -> ()) {
+        usersRef.document(userID).getDocument { [weak self] (documentSnapshot, error) in
+            if let error = error  {
+                completion(.failure(error))
+                return
+            }
+            if let dict = documentSnapshot?.data() {
+                if var muser = ProfileNetworkModel(dict: dict) {
+                    self?.getProfilePostsCount(userID: userID) { (result) in
+                        switch result {
+                        case .success(let count):
+                            muser.postsCount = count
+                            completion(.success(muser))
+                        case .failure(let error):
+                            completion(.failure(error))
+                        }
+                    }
+                } else {
+                    completion(.failure(GetUserInfoError.convertData))
+                }
+            } else {
+                completion(.failure(GetUserInfoError.getData))
+            }
+        }
+    }
+}
+
+private extension ProfilesService {
+
+    func getProfilePostsCount(userID: String, completion: @escaping (Result<Int,Error>) -> ()) {
+        usersRef.document(userID).collection(URLComponents.Paths.posts.rawValue).getDocuments { (querySnapshot, error) in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let querySnapshot = querySnapshot else { return }
+            let count = querySnapshot.count
+            completion(.success(count))
+        }
+    }
+
+    func getFirstUsersIDs(query: Query, completion: @escaping (Result<[String],Error>) -> Void) {
+        query.getDocuments { [weak self] (querySnapshot, error) in
+            guard let self = self else { return }
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let querySnapshot = querySnapshot else { return }
+            self.lastProfile = querySnapshot.documents.last
+            completion(.success(querySnapshot.documents.map { $0.documentID }))
+        }
+    }
+    
+    func getNextUsersIDs(query: Query, completion: @escaping (Result<[String],Error>) -> Void) {
+        guard let lastDocument = lastProfile else { return }
+        query.start(afterDocument: lastDocument).limit(to: RequestLimits.users.rawValue).getDocuments { [weak self] (querySnapshot, error) in
+            guard let self = self else { return }
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let querySnapshot = querySnapshot else { return }
+            self.lastProfile = querySnapshot.documents.last
+            completion(.success(querySnapshot.documents.map { $0.documentID }))
+        }
+    }
+}
