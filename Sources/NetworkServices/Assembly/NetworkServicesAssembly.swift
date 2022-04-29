@@ -11,8 +11,9 @@ import FirebaseAuth
 import FirebaseStorage
 import FirebaseFirestore
 
-public final class NetworkServicesAssembly {
-    public static func assemble(container: Container) {
+public final class NetworkServicesAssembly: Assembly {
+    public init() { }
+    public func assemble(container: Container) {
         container.register(AuthServiceProtocol.self) { r in
             AuthService(authNetworkService: Auth.auth())
         }
