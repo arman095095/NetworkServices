@@ -12,30 +12,43 @@ import FirebaseFirestore
 public protocol PostNetworkModelProtocol: AnyObject {
     var userID: String { get set }
     var likersIds: [String] { get set }
-    var owner: ProfileNetworkModelProtocol? { get set }
     var date: Date { get set }
     var id: String { get set }
     var textContent: String { get set }
     var urlImage: String? { get set }
-    var imageSize: CGSize? { get set }
-    var likedByMe: Bool { get set }
+    var imageHeight: CGFloat? { get set }
+    var imageWidth: CGFloat? { get set }
     
     func convertModelToDictionary() -> [String: Any]
 }
 
-final class PostNetworkModel: PostNetworkModelProtocol {
+public final class PostNetworkModel: PostNetworkModelProtocol {
     
-    var userID: String
-    var likersIds: [String]
-    var owner: ProfileNetworkModelProtocol?
-    var date: Date
-    var id: String
-    var textContent: String
-    var urlImage: String?
-    var imageSize: CGSize?
-    var likedByMe: Bool
+    public var userID: String
+    public var likersIds: [String]
+    public var date: Date
+    public var id: String
+    public var textContent: String
+    public var urlImage: String?
+    public var imageHeight: CGFloat?
+    public var imageWidth: CGFloat?
     
-    init?(postDictionary: [String:Any]) {
+    public init(userID: String,
+                textContent: String,
+                urlImage: String?,
+                imageHeight: CGFloat?,
+                imageWidth: CGFloat?) {
+        self.userID = userID
+        self.id = UUID().uuidString
+        self.textContent = textContent
+        self.urlImage = urlImage
+        self.imageWidth = imageWidth
+        self.imageHeight = imageHeight
+        self.likersIds = []
+        self.date = Date()
+    }
+    
+    public init?(postDictionary: [String:Any]) {
         guard let id = postDictionary["id"] as? String,
               let date = postDictionary["date"] as? Timestamp,
               let textContent = postDictionary["textContent"] as? String,
@@ -47,13 +60,14 @@ final class PostNetworkModel: PostNetworkModelProtocol {
         self.textContent = textContent
         self.date = date.dateValue()
         self.likersIds = []
-        self.likedByMe = false
         
         if let urlImage = postDictionary["urlImage"] as? String {
             self.urlImage = urlImage
         }
-        if let imageHeight = postDictionary["imageHeight"] as? CGFloat,let imageWidth = postDictionary["imageWidth"] as? CGFloat  {
-            self.imageSize = CGSize(width: imageWidth, height: imageHeight)
+        if let imageHeight = postDictionary["imageHeight"] as? CGFloat,
+           let imageWidth = postDictionary["imageWidth"] as? CGFloat {
+            self.imageHeight = imageHeight
+            self.imageWidth = imageWidth
         }
     }
     
@@ -67,18 +81,19 @@ final class PostNetworkModel: PostNetworkModelProtocol {
         self.init(postDictionary: postDictionary)
     }
     
-    func convertModelToDictionary() -> [String: Any] {
+    public func convertModelToDictionary() -> [String: Any] {
         var postDictionary: [String:Any] = ["userID": userID]
         postDictionary["id"] = id
         postDictionary["textContent"] = textContent
-        postDictionary["date"] = date
+        postDictionary["date"] = FieldValue.serverTimestamp
         
         if let urlImage = self.urlImage {
             postDictionary["urlImage"] = urlImage
         }
-        if let imageSize = self.imageSize {
-            postDictionary["imageHeight"] = imageSize.height
-            postDictionary["imageWidth"] = imageSize.width
+        if let imageHeight = self.imageHeight,
+           let imageWidth = self.imageWidth {
+            postDictionary["imageHeight"] = imageHeight
+            postDictionary["imageWidth"] = imageWidth
         }
         return postDictionary
     }

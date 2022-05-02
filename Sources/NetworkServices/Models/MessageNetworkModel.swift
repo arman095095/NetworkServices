@@ -83,7 +83,7 @@ public final class MessageNetworkModel: MessageNetworkModelProtocol {
     }
     
     public func convertModelToDictionary() -> [String : Any] {
-        var mmessegeDictionary: [String:Any] = [:]
+        var mmessegeDictionary: [String: Any] = [:]
         mmessegeDictionary["date"] = FieldValue.serverTimestamp()
         mmessegeDictionary["senderID"] = senderID
         mmessegeDictionary["adressID"] = adressID
