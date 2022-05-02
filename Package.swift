@@ -3,6 +3,19 @@
 
 import PackageDescription
 
+private let remoteDependencies: [Package.Dependency] = [
+    .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "8.10.0"),
+    .package(url: "https://github.com/Swinject/Swinject.git", from: "2.8.0")
+]
+
+private let localDependencies: [Package.Dependency] = [
+    .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "8.10.0"),
+    .package(url: "https://github.com/Swinject/Swinject.git", from: "2.8.0")
+]
+
+let isDev = true
+private let dependencies = isDev ? localDependencies : remoteDependencies
+
 let package = Package(
     name: "NetworkServices",
     platforms: [
@@ -14,10 +27,7 @@ let package = Package(
             name: "NetworkServices",
             targets: ["NetworkServices"]),
     ],
-    dependencies: [
-        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "8.10.0"),
-        .package(url: "https://github.com/Swinject/Swinject.git", from: "2.8.0")
-    ],
+    dependencies: dependencies,
     targets: [
         .target(
             name: "NetworkServices",
