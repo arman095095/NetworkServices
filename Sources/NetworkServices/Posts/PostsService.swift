@@ -73,26 +73,6 @@ extension PostsService: PostsServiceProtocol {
         }
     }
     
-    public func getPostLikersIDs(postID: String, completion: @escaping (Result<[String], Error>) -> ()) {
-        postsRef.document(postID).collection(URLComponents.Paths.likers.rawValue).getDocuments { (querySnapshot, error) in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-            guard let querySnapshot = querySnapshot else {
-                completion(.success([]))
-                return
-            }
-            var ids = [String]()
-            querySnapshot.documents.forEach {
-                if let id = $0.data()[URLComponents.Parameters.id.rawValue] as? String {
-                    ids.append(id)
-                }
-            }
-            completion(.success(ids))
-        }
-    }
-    
     public func getAllFirstPosts(count: Int, completion: @escaping (Result<[PostNetworkModelProtocol],Error>) -> ()) {
         if !InternetConnectionManager.isConnectedToNetwork() {
             completion(.failure(ConnectionError.noInternet))
@@ -251,5 +231,25 @@ extension PostsService: PostsServiceProtocol {
                            ownerID: String) {
         postsRef.document(postID).collection(URLComponents.Paths.likers.rawValue).document(accountID).delete()
         usersRef.document(ownerID).collection(URLComponents.Paths.posts.rawValue).document(postID).collection(URLComponents.Paths.likers.rawValue).document(accountID).delete()
+    }
+    
+    public func getPostLikersIDs(postID: String, completion: @escaping (Result<[String], Error>) -> ()) {
+        postsRef.document(postID).collection(URLComponents.Paths.likers.rawValue).getDocuments { (querySnapshot, error) in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let querySnapshot = querySnapshot else {
+                completion(.success([]))
+                return
+            }
+            var ids = [String]()
+            querySnapshot.documents.forEach {
+                if let id = $0.data()[URLComponents.Parameters.id.rawValue] as? String {
+                    ids.append(id)
+                }
+            }
+            completion(.success(ids))
+        }
     }
 }
