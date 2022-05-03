@@ -13,7 +13,7 @@ private let localDependencies: [Package.Dependency] = [
     .package(url: "https://github.com/Swinject/Swinject.git", from: "2.8.0")
 ]
 
-let isDev = false
+let isDev = true
 private let dependencies = isDev ? localDependencies : remoteDependencies
 
 let package = Package(
