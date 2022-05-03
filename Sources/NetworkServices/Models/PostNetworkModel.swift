@@ -85,7 +85,7 @@ public final class PostNetworkModel: PostNetworkModelProtocol {
         var postDictionary: [String:Any] = ["userID": userID]
         postDictionary["id"] = id
         postDictionary["textContent"] = textContent
-        postDictionary["date"] = FieldValue.serverTimestamp
+        postDictionary["date"] = FieldValue.serverTimestamp()
         
         if let urlImage = self.urlImage {
             postDictionary["urlImage"] = urlImage
