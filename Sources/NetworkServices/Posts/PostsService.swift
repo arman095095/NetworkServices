@@ -42,6 +42,9 @@ public final class PostsService {
     }
     
     public init(networkService: Firestore) {
+        let settings = FirestoreSettings()
+        settings.isPersistenceEnabled = false
+        networkService.settings = settings
         self.networkServiceRef = networkService
     }
 }
