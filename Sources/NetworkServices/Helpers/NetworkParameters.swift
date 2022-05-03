@@ -7,11 +7,6 @@
 
 import Foundation
 
-enum RequestLimits: Int {
-    case posts = 20
-    case users = 15
-}
-
 struct URLComponents {
 
     enum Paths: String {

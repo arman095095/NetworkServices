@@ -9,8 +9,8 @@ import FirebaseFirestore
 
 public protocol ProfilesServiceProtocol {
     func getProfileInfo(userID: String, completion: @escaping (Result<ProfileNetworkModelProtocol,Error>) -> ())
-    func getFirstProfilesIDs(completion: @escaping (Result<[String],Error>) -> Void)
-    func getNextProfilesIDs(completion: @escaping (Result<[String],Error>) -> Void)
+    func getFirstProfilesIDs(count: Int, completion: @escaping (Result<[String],Error>) -> Void)
+    func getNextProfilesIDs(count: Int, completion: @escaping (Result<[String],Error>) -> Void)
 }
 
 public final class ProfilesService {
@@ -28,20 +28,20 @@ public final class ProfilesService {
 
 extension ProfilesService: ProfilesServiceProtocol {
 
-    public func getFirstProfilesIDs(completion: @escaping (Result<[String],Error>) -> Void) {
+    public func getFirstProfilesIDs(count: Int, completion: @escaping (Result<[String],Error>) -> Void) {
         if !InternetConnectionManager.isConnectedToNetwork() {
             completion(.failure(ConnectionError.noInternet))
         }
-        let query = usersRef.order(by: URLComponents.Parameters.lastActivity.rawValue, descending: true).limit(to: RequestLimits.users.rawValue)
+        let query = usersRef.order(by: URLComponents.Parameters.lastActivity.rawValue, descending: true).limit(to: count)
         getFirstUsersIDs(query: query, completion: completion)
     }
     
-    public func getNextProfilesIDs(completion: @escaping (Result<[String],Error>) -> Void) {
+    public func getNextProfilesIDs(count: Int, completion: @escaping (Result<[String],Error>) -> Void) {
         if !InternetConnectionManager.isConnectedToNetwork() {
             completion(.failure(ConnectionError.noInternet))
         }
-        let query = usersRef.order(by: URLComponents.Parameters.lastActivity.rawValue, descending: true).limit(to: RequestLimits.users.rawValue)
-        getNextUsersIDs(query: query, completion: completion)
+        let query = usersRef.order(by: URLComponents.Parameters.lastActivity.rawValue, descending: true).limit(to: count)
+        getNextUsersIDs(count: count, query: query, completion: completion)
     }
 
     public func getProfileInfo(userID: String, completion: @escaping (Result<ProfileNetworkModelProtocol,Error>) -> ()) {
@@ -98,9 +98,9 @@ private extension ProfilesService {
         }
     }
     
-    func getNextUsersIDs(query: Query, completion: @escaping (Result<[String],Error>) -> Void) {
+    func getNextUsersIDs(count: Int, query: Query, completion: @escaping (Result<[String],Error>) -> Void) {
         guard let lastDocument = lastProfile else { return }
-        query.start(afterDocument: lastDocument).limit(to: RequestLimits.users.rawValue).getDocuments { [weak self] (querySnapshot, error) in
+        query.start(afterDocument: lastDocument).limit(to: count).getDocuments { [weak self] (querySnapshot, error) in
             guard let self = self else { return }
             if let error = error {
                 completion(.failure(error))
