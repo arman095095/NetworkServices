@@ -114,6 +114,7 @@ extension PostsService: PostsServiceProtocol {
                     self.lastPostOfAll = documentSnapshot
                 }
             }
+            completion(.success(posts))
         }
     }
     
@@ -142,6 +143,7 @@ extension PostsService: PostsServiceProtocol {
                     self.lastPostOfAll = documentSnapshot
                 }
             }
+            completion(.success(posts))
         }
     }
     
@@ -197,6 +199,7 @@ extension PostsService: PostsServiceProtocol {
                     self.lastPostUser = documentSnapshot
                 }
             }
+            completion(.success(posts))
         }
     }
     
