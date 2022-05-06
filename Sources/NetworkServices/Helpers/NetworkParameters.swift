@@ -19,6 +19,9 @@ struct URLComponents {
         case typing
         case posts
         case messages
+        case requests
+        case waitings
+        case friendIDs
     }
 
     enum Parameters: String {
@@ -29,6 +32,8 @@ struct URLComponents {
         case looked
         case senderID
         case date
+        case friendID
+        case userID
     }
 }
 

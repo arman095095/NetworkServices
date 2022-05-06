@@ -33,6 +33,15 @@ public protocol AccountServiceProtocol {
                           completion: @escaping (Result<[String],Error>) -> Void)
 }
 
+public protocol RequestsServiceProtocol: AnyObject {
+    func send(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ())
+    func accept(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ())
+    func deny(toID: String, fromID: String)
+    func friendIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ())
+    func waitingIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ())
+    func requestIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ())
+}
+
 public final class AccountService {
     
     private let networkServiceRef: Firestore
@@ -187,6 +196,81 @@ extension AccountService: AccountServiceProtocol {
                 complition(.success(()))
             }
         }
+    }
+}
+
+extension AccountService: RequestsServiceProtocol {
+    public func friendIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ()) {
+        usersRef.document(userID).collection(URLComponents.Paths.friendIDs.rawValue).getDocuments { query, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let query = query else { return }
+            completion(.success(query.documents.map { $0.documentID }))
+        }
+    }
+    
+    public func waitingIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ()) {
+        usersRef.document(userID).collection(URLComponents.Paths.waitings.rawValue).getDocuments { query, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let query = query else { return }
+            completion(.success(query.documents.map { $0.documentID }))
+        }
+    }
+    
+    public func requestIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ()) {
+        usersRef.document(userID).collection(URLComponents.Paths.requests.rawValue).getDocuments { query, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let query = query else { return }
+            completion(.success(query.documents.map { $0.documentID }))
+        }
+    }
+    
+    public func send(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ()) {
+        usersRef.document(toID).collection(URLComponents.Paths.requests.rawValue).document(fromID).setData( [URLComponents.Parameters.userID.rawValue:fromID]) { [weak self] error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            self?.usersRef.document(fromID).collection(URLComponents.Paths.waitings.rawValue).document(toID).setData([URLComponents.Parameters.userID.rawValue:toID]) { error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                completion(.success(()))
+            }
+        }
+    }
+    
+    public func accept(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ()) {
+        usersRef.document(fromID).collection(URLComponents.Paths.waitings.rawValue).document(toID).delete()
+        usersRef.document(toID).collection(URLComponents.Paths.requests.rawValue).document(fromID).delete()
+        
+        usersRef.document(fromID).collection(URLComponents.Paths.friendIDs.rawValue).document(toID).setData( [URLComponents.Parameters.friendID.rawValue: toID]) { [weak self] error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            self?.usersRef.document(toID).collection(URLComponents.Paths.friendIDs.rawValue).document(fromID).setData([URLComponents.Parameters.friendID.rawValue: fromID]) { error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                completion(.success(()))
+            }
+        }
+    }
+    
+    public func deny(toID: String, fromID: String) {
+        usersRef.document(fromID).collection(URLComponents.Paths.waitings.rawValue).document(toID).delete()
+        usersRef.document(toID).collection(URLComponents.Paths.requests.rawValue).document(fromID).delete()
     }
 }
 
