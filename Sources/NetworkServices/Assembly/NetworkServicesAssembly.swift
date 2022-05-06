@@ -24,7 +24,7 @@ public final class NetworkServicesAssembly: Assembly {
     
         container.register(AccountServiceProtocol.self) { r in
             AccountService(networkService: Firestore.firestore())
-        }.implements(RequestsServiceProtocol.self)
+        }
     
         container.register(ProfilesServiceProtocol.self) { r in
             ProfilesService(networkService: Firestore.firestore())
@@ -32,6 +32,10 @@ public final class NetworkServicesAssembly: Assembly {
         
         container.register(PostsServiceProtocol.self) { r in
             PostsService(networkService: Firestore.firestore())
+        }
+        
+        container.register(RequestsServiceProtocol.self) { r in
+            RequestsService(networkService: Firestore.firestore())
         }
     }
 }
