@@ -44,7 +44,7 @@ extension RequestsService: RequestsServiceProtocol {
     }
     
     public func waitingIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ()) {
-        usersRef.document(userID).collection(URLComponents.Paths.waitings.rawValue).getDocuments { query, error in
+        usersRef.document(userID).collection(URLComponents.Paths.waitingUsers.rawValue).getDocuments { query, error in
             if let error = error {
                 completion(.failure(error))
                 return
@@ -55,7 +55,7 @@ extension RequestsService: RequestsServiceProtocol {
     }
     
     public func requestIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ()) {
-        usersRef.document(userID).collection(URLComponents.Paths.requests.rawValue).getDocuments { query, error in
+        usersRef.document(userID).collection(URLComponents.Paths.sendedRequests.rawValue).getDocuments { query, error in
             if let error = error {
                 completion(.failure(error))
                 return
@@ -66,12 +66,12 @@ extension RequestsService: RequestsServiceProtocol {
     }
     
     public func send(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ()) {
-        usersRef.document(toID).collection(URLComponents.Paths.requests.rawValue).document(fromID).setData( [URLComponents.Parameters.userID.rawValue:fromID]) { [weak self] error in
+        usersRef.document(toID).collection(URLComponents.Paths.waitingUsers.rawValue).document(fromID).setData( [URLComponents.Parameters.userID.rawValue:fromID]) { [weak self] error in
             if let error = error {
                 completion(.failure(error))
                 return
             }
-            self?.usersRef.document(fromID).collection(URLComponents.Paths.waitings.rawValue).document(toID).setData([URLComponents.Parameters.userID.rawValue:toID]) { error in
+            self?.usersRef.document(fromID).collection(URLComponents.Paths.sendedRequests.rawValue).document(toID).setData([URLComponents.Parameters.userID.rawValue:toID]) { error in
                 if let error = error {
                     completion(.failure(error))
                     return
@@ -82,8 +82,8 @@ extension RequestsService: RequestsServiceProtocol {
     }
     
     public func accept(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ()) {
-        usersRef.document(fromID).collection(URLComponents.Paths.waitings.rawValue).document(toID).delete()
-        usersRef.document(toID).collection(URLComponents.Paths.requests.rawValue).document(fromID).delete()
+        usersRef.document(fromID).collection(URLComponents.Paths.waitingUsers.rawValue).document(toID).delete()
+        usersRef.document(toID).collection(URLComponents.Paths.sendedRequests.rawValue).document(fromID).delete()
         
         usersRef.document(fromID).collection(URLComponents.Paths.friendIDs.rawValue).document(toID).setData( [URLComponents.Parameters.friendID.rawValue: toID]) { [weak self] error in
             if let error = error {
@@ -101,7 +101,7 @@ extension RequestsService: RequestsServiceProtocol {
     }
     
     public func deny(toID: String, fromID: String) {
-        usersRef.document(fromID).collection(URLComponents.Paths.waitings.rawValue).document(toID).delete()
-        usersRef.document(toID).collection(URLComponents.Paths.requests.rawValue).document(fromID).delete()
+        usersRef.document(fromID).collection(URLComponents.Paths.waitingUsers.rawValue).document(toID).delete()
+        usersRef.document(toID).collection(URLComponents.Paths.sendedRequests.rawValue).document(fromID).delete()
     }
 }

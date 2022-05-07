@@ -19,8 +19,8 @@ struct URLComponents {
         case typing
         case posts
         case messages
-        case requests
-        case waitings
+        case sendedRequests
+        case waitingUsers
         case friendIDs
     }
 
