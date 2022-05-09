@@ -11,6 +11,7 @@ public protocol ProfilesServiceProtocol {
     func getProfileInfo(userID: String, completion: @escaping (Result<ProfileNetworkModelProtocol,Error>) -> ())
     func getFirstProfilesIDs(count: Int, completion: @escaping (Result<[String],Error>) -> Void)
     func getNextProfilesIDs(count: Int, completion: @escaping (Result<[String],Error>) -> Void)
+    func initProfileSocket(userID: String, completion: @escaping (Result<ProfileNetworkModelProtocol, Error>) -> Void) -> SocketProtocol
 }
 
 public final class ProfilesService {
@@ -27,6 +28,20 @@ public final class ProfilesService {
 }
 
 extension ProfilesService: ProfilesServiceProtocol {
+    
+    public func initProfileSocket(userID: String, completion: @escaping (Result<ProfileNetworkModelProtocol, Error>) -> Void) -> SocketProtocol {
+        let listener = usersRef.document(userID).addSnapshotListener { snapshot, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let snapshot = snapshot,
+                  let data = snapshot.data(),
+                  let profile = ProfileNetworkModel(dict: data) else { return }
+            completion(.success(profile))
+        }
+        return FirestoreSocketAdapter(adaptee: listener)
+    }
 
     public func getFirstProfilesIDs(count: Int, completion: @escaping (Result<[String],Error>) -> Void) {
         if !InternetConnectionManager.isConnectedToNetwork() {

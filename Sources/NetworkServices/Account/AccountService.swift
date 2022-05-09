@@ -29,8 +29,7 @@ public protocol AccountServiceProtocol {
                      userID: String, complition: @escaping (Result<Void,Error>) -> Void)
     func getBlockedIds(accountID: String,
                        completion: @escaping (Result<[String],Error>) -> Void)
-    func getIamBlockedIDs(accountID: String,
-                          completion: @escaping (Result<[String],Error>) -> Void)
+    
 }
 
 public final class AccountService {
@@ -67,24 +66,6 @@ extension AccountService: AccountServiceProtocol {
             completion(.success(ids))
         }
     }
-    
-    public func getIamBlockedIDs(accountID: String, completion: @escaping (Result<[String], Error>) -> Void) {
-        var ids: [String] = []
-        usersRef.document(accountID).collection(URLComponents.Paths.iamblocked.rawValue).getDocuments { (query, error) in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-            guard let query = query else { return }
-            query.documents.forEach { doc in
-                if let id = doc.data()[URLComponents.Parameters.id.rawValue] as? String {
-                    ids.append(id)
-                }
-            }
-            completion(.success(ids))
-        }
-    }
-    
     
     public func createAccount(accountID: String,
                               profile: ProfileNetworkModelProtocol,
@@ -156,13 +137,7 @@ extension AccountService: AccountServiceProtocol {
             if let error = error {
                 complition(.failure(error))
             }
-            self.usersRef.document(userID).collection(URLComponents.Paths.iamblocked.rawValue).document(accountID).setData([URLComponents.Parameters.id.rawValue: accountID]) { (error) in
-                if let error = error {
-                    complition(.failure(error))
-                    return
-                }
-                complition(.success(()))
-            }
+            complition(.success(()))
         }
     }
     
@@ -179,13 +154,7 @@ extension AccountService: AccountServiceProtocol {
                 complition(.failure(error))
                 return
             }
-            self.usersRef.document(userID).collection(URLComponents.Paths.iamblocked.rawValue).document(accountID).delete { (error) in
-                if let error = error {
-                    complition(.failure(error))
-                    return
-                }
-                complition(.success(()))
-            }
+            complition(.success(()))
         }
     }
 }
