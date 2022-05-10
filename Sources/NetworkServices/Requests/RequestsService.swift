@@ -8,7 +8,7 @@
 import FirebaseFirestore
 
 public protocol RequestsServiceProtocol: AnyObject {
-    func removeChat(with friendID: String, from id: String)
+    func removeFriend(with friendID: String, from id: String)
     func send(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ())
     func accept(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ())
     func deny(toID: String, fromID: String)
@@ -162,7 +162,7 @@ extension RequestsService: RequestsServiceProtocol {
         usersRef.document(toID).collection(URLComponents.Paths.sendedRequests.rawValue).document(fromID).delete()
     }
     
-    public func removeChat(with friendID: String, from id: String) {
+    public func removeFriend(with friendID: String, from id: String) {
         usersRef.document(id).collection(URLComponents.Paths.friendIDs.rawValue).document(friendID).delete()
         usersRef.document(friendID).collection(URLComponents.Paths.friendIDs.rawValue).document(id).delete()
     }
