@@ -12,6 +12,7 @@ public protocol RequestsServiceProtocol: AnyObject {
     func send(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ())
     func accept(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ())
     func deny(toID: String, fromID: String)
+    func cancelRequest(toID: String, fromID: String)
     func friendIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ())
     func waitingIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ())
     func requestIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ())
@@ -37,11 +38,6 @@ public final class RequestsService {
 }
 
 extension RequestsService: RequestsServiceProtocol {
-
-    public func removeChat(with friendID: String, from id: String) {
-        usersRef.document(id).collection(URLComponents.Paths.friendIDs.rawValue).document(friendID).delete()
-        usersRef.document(friendID).collection(URLComponents.Paths.friendIDs.rawValue).document(id).delete()
-    }
 
     public func initRequestsSocket(userID: String,
                                    completion: @escaping (Result<(add: [String],removed: [String]), Error>) -> Void) -> SocketProtocol {
@@ -164,5 +160,15 @@ extension RequestsService: RequestsServiceProtocol {
     public func deny(toID: String, fromID: String) {
         usersRef.document(fromID).collection(URLComponents.Paths.waitingUsers.rawValue).document(toID).delete()
         usersRef.document(toID).collection(URLComponents.Paths.sendedRequests.rawValue).document(fromID).delete()
+    }
+    
+    public func removeChat(with friendID: String, from id: String) {
+        usersRef.document(id).collection(URLComponents.Paths.friendIDs.rawValue).document(friendID).delete()
+        usersRef.document(friendID).collection(URLComponents.Paths.friendIDs.rawValue).document(id).delete()
+    }
+    
+    public func cancelRequest(toID: String, fromID: String) {
+        usersRef.document(fromID).collection(URLComponents.Paths.sendedRequests.rawValue).document(toID).delete()
+        usersRef.document(toID).collection(URLComponents.Paths.waitingUsers.rawValue).document(fromID).delete()
     }
 }
