@@ -8,11 +8,11 @@
 import FirebaseFirestore
 
 public protocol RequestsServiceProtocol: AnyObject {
-    func removeFriend(with friendID: String, from id: String)
+    func removeFriend(with friendID: String, from id: String, completion: @escaping (Result<Void, Error>) -> ())
     func send(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ())
     func accept(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ())
-    func deny(toID: String, fromID: String)
-    func cancelRequest(toID: String, fromID: String)
+    func deny(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ())
+    func cancelRequest(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ())
     func friendIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ())
     func waitingIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ())
     func requestIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ())
@@ -157,18 +157,53 @@ extension RequestsService: RequestsServiceProtocol {
         }
     }
     
-    public func deny(toID: String, fromID: String) {
-        usersRef.document(fromID).collection(URLComponents.Paths.waitingUsers.rawValue).document(toID).delete()
-        usersRef.document(toID).collection(URLComponents.Paths.sendedRequests.rawValue).document(fromID).delete()
+    public func deny(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ()) {
+        usersRef.document(fromID).collection(URLComponents.Paths.waitingUsers.rawValue).document(toID).delete { [weak self] error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            self?.usersRef.document(toID).collection(URLComponents.Paths.sendedRequests.rawValue).document(fromID).delete { error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                completion(.success(()))
+            }
+        }
+        
     }
     
-    public func removeFriend(with friendID: String, from id: String) {
-        usersRef.document(id).collection(URLComponents.Paths.friendIDs.rawValue).document(friendID).delete()
-        usersRef.document(friendID).collection(URLComponents.Paths.friendIDs.rawValue).document(id).delete()
+    public func removeFriend(with friendID: String, from id: String, completion: @escaping (Result<Void, Error>) -> ()) {
+        usersRef.document(id).collection(URLComponents.Paths.friendIDs.rawValue).document(friendID).delete { [weak self] error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            self?.usersRef.document(friendID).collection(URLComponents.Paths.friendIDs.rawValue).document(id).delete { error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                completion(.success(()))
+            }
+        }
     }
     
-    public func cancelRequest(toID: String, fromID: String) {
-        usersRef.document(fromID).collection(URLComponents.Paths.sendedRequests.rawValue).document(toID).delete()
-        usersRef.document(toID).collection(URLComponents.Paths.waitingUsers.rawValue).document(fromID).delete()
+    public func cancelRequest(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ()) {
+        usersRef.document(fromID).collection(URLComponents.Paths.sendedRequests.rawValue).document(toID).delete { [weak self] error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            self?.usersRef.document(toID).collection(URLComponents.Paths.waitingUsers.rawValue).document(fromID).delete { error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                completion(.success(()))
+            }
+        }
+        
     }
 }
