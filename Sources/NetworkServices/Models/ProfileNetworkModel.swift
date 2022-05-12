@@ -26,7 +26,7 @@ public protocol ProfileNetworkModelProtocol {
 }
 
 //MARK: FirebaseFirestore
-public struct ProfileNetworkModel: ProfileNetworkModelProtocol {
+struct ProfileNetworkModel: ProfileNetworkModelProtocol {
     
     public var userName: String
     public var info: String
@@ -41,7 +41,7 @@ public struct ProfileNetworkModel: ProfileNetworkModelProtocol {
     public var lastActivity: Date?
     public var postsCount: Int
     
-    public init(userName: String,
+    init(userName: String,
          imageName: String,
          identifier: String,
          sex: String,

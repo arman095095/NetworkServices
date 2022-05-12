@@ -23,11 +23,11 @@ public protocol RemoteStorageServiceProtocol {
     func delete(from url: URL)
 }
 
-public final class RemoteStorageService {
+final class RemoteStorageService {
 
     private let storage: Storage
     
-    public init(storage: Storage) {
+    init(storage: Storage) {
         self.storage = storage
     }
 }

@@ -22,7 +22,7 @@ public protocol MessageNetworkModelProtocol: AnyObject {
     func convertModelToDictionary() -> [String: Any]
 }
 
-public final class MessageNetworkModel: MessageNetworkModelProtocol {
+final class MessageNetworkModel: MessageNetworkModelProtocol {
     public var adressID: String
     public var senderID: String
     public var id: String
@@ -34,16 +34,16 @@ public final class MessageNetworkModel: MessageNetworkModelProtocol {
     public var audioDuration: Float?
     public var date: Date?
     
-    public init(imageData: Data?,
-                audioURL: String?,
-                photoURL: String?,
-                adressID: String,
-                senderID: String,
-                content: String,
-                imageRatio: Double?,
-                audioDuration: Float?,
-                id: String,
-                date: Date?) {
+    init(imageData: Data?,
+         audioURL: String?,
+         photoURL: String?,
+         adressID: String,
+         senderID: String,
+         content: String,
+         imageRatio: Double?,
+         audioDuration: Float?,
+         id: String,
+         date: Date?) {
         self.photoURL = photoURL
         self.imageRatio = imageRatio
         self.audioURL = audioURL
@@ -60,10 +60,10 @@ public final class MessageNetworkModel: MessageNetworkModelProtocol {
         let mmessegeDictionary = queryDocumentSnapshot.data()
         
         guard let senderID = mmessegeDictionary["senderID"] as? String,
-        let id = mmessegeDictionary["id"] as? String,
-        let date = mmessegeDictionary["date"] as? Timestamp,
-        let content = mmessegeDictionary["content"] as? String,
-        let adressID = mmessegeDictionary["adressID"] as? String
+              let id = mmessegeDictionary["id"] as? String,
+              let date = mmessegeDictionary["date"] as? Timestamp,
+              let content = mmessegeDictionary["content"] as? String,
+              let adressID = mmessegeDictionary["adressID"] as? String
         else { return nil }
         
         if let urlPhotoString = mmessegeDictionary["photoURL"] as? String,

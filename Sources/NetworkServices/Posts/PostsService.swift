@@ -28,7 +28,7 @@ public protocol PostsServiceProtocol {
     func unlikePost(accountID: String, postID: String, ownerID: String)
 }
 
-public final class PostsService {
+final class PostsService {
     private let networkServiceRef: Firestore
     private var lastPostOfAll: DocumentSnapshot?
     private var lastPostUser: DocumentSnapshot?
@@ -41,7 +41,7 @@ public final class PostsService {
         return networkServiceRef.collection(URLComponents.Paths.posts.rawValue)
     }
     
-    public init(networkService: Firestore) {
+    init(networkService: Firestore) {
         let settings = FirestoreSettings()
         settings.isPersistenceEnabled = false
         networkService.settings = settings

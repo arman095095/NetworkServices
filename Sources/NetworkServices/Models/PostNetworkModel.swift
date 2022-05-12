@@ -22,7 +22,7 @@ public protocol PostNetworkModelProtocol: AnyObject {
     func convertModelToDictionary() -> [String: Any]
 }
 
-public final class PostNetworkModel: PostNetworkModelProtocol {
+final class PostNetworkModel: PostNetworkModelProtocol {
     
     public var userID: String
     public var likersIds: [String]
@@ -33,7 +33,7 @@ public final class PostNetworkModel: PostNetworkModelProtocol {
     public var imageHeight: CGFloat?
     public var imageWidth: CGFloat?
     
-    public init(userID: String,
+    init(userID: String,
                 textContent: String,
                 urlImage: String?,
                 imageHeight: CGFloat?,
@@ -48,7 +48,7 @@ public final class PostNetworkModel: PostNetworkModelProtocol {
         self.date = Date()
     }
     
-    public init?(postDictionary: [String:Any]) {
+    init?(postDictionary: [String:Any]) {
         guard let id = postDictionary["id"] as? String,
               let date = postDictionary["date"] as? Timestamp,
               let textContent = postDictionary["textContent"] as? String,

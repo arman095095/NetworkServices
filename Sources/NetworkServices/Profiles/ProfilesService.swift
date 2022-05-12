@@ -14,7 +14,7 @@ public protocol ProfilesServiceProtocol {
     func initProfileSocket(userID: String, completion: @escaping (Result<ProfileNetworkModelProtocol, Error>) -> Void) -> SocketProtocol
 }
 
-public final class ProfilesService {
+final class ProfilesService {
     private let networkServiceRef: Firestore
     private var lastProfile: DocumentSnapshot?
     
@@ -22,7 +22,7 @@ public final class ProfilesService {
         return networkServiceRef.collection(URLComponents.Paths.users.rawValue)
     }
     
-    public init(networkService: Firestore) {
+    init(networkService: Firestore) {
         self.networkServiceRef = networkService
     }
 }

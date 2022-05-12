@@ -18,10 +18,10 @@ public protocol AuthServiceProtocol {
 }
 
 //MARK: Auth
-public final class AuthService {
+final class AuthService {
     private let authNetworkService: Auth
     
-    public init(authNetworkService: Auth) {
+    init(authNetworkService: Auth) {
         self.authNetworkService = authNetworkService
     }
 }

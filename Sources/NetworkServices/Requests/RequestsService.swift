@@ -24,14 +24,14 @@ public protocol RequestsServiceProtocol: AnyObject {
                            completion: @escaping (Result<(add: [String],removed: [String]), Error>) -> Void) -> SocketProtocol
 }
 
-public final class RequestsService {
+final class RequestsService {
     private let networkServiceRef: Firestore
 
     private var usersRef: CollectionReference {
         return networkServiceRef.collection(URLComponents.Paths.users.rawValue)
     }
     
-    public init(networkService: Firestore) {
+    init(networkService: Firestore) {
         let settings = FirestoreSettings()
         settings.isPersistenceEnabled = false
         networkService.settings = settings

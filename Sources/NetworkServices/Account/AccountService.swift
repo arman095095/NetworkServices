@@ -32,7 +32,7 @@ public protocol AccountServiceProtocol {
     
 }
 
-public final class AccountService {
+final class AccountService {
     
     private let networkServiceRef: Firestore
 
@@ -40,7 +40,7 @@ public final class AccountService {
         return networkServiceRef.collection(URLComponents.Paths.users.rawValue)
     }
     
-    public init(networkService: Firestore) {
+    init(networkService: Firestore) {
         let settings = FirestoreSettings()
         settings.isPersistenceEnabled = false
         networkService.settings = settings
