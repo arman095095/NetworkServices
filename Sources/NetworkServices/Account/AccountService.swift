@@ -132,8 +132,7 @@ extension AccountService: AccountServiceProtocol {
             complition(.failure(ConnectionError.noInternet))
             return
         }
-        usersRef.document(accountID).collection(URLComponents.Paths.blocked.rawValue).document(userID).setData([URLComponents.Parameters.id.rawValue: userID]) { [weak self] (error) in
-            guard let self = self else { return }
+        usersRef.document(accountID).collection(URLComponents.Paths.blocked.rawValue).document(userID).setData([URLComponents.Parameters.id.rawValue: userID]) { error in
             if let error = error {
                 complition(.failure(error))
             }
@@ -148,8 +147,7 @@ extension AccountService: AccountServiceProtocol {
             complition(.failure(ConnectionError.noInternet))
             return
         }
-        usersRef.document(accountID).collection(URLComponents.Paths.blocked.rawValue).document(userID).delete { [weak self] (error) in
-            guard let self = self else { return }
+        usersRef.document(accountID).collection(URLComponents.Paths.blocked.rawValue).document(userID).delete { error in
             if let error = error {
                 complition(.failure(error))
                 return
