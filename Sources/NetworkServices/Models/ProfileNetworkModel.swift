@@ -41,14 +41,14 @@ struct ProfileNetworkModel: ProfileNetworkModelProtocol {
     public var lastActivity: Date?
     public var postsCount: Int
     
-    init(userName: String,
-         imageName: String,
-         identifier: String,
-         sex: String,
-         info: String,
-         birthDay: String,
-         country: String,
-         city: String) {
+    public init(userName: String,
+                imageName: String,
+                identifier: String,
+                sex: String,
+                info: String,
+                birthDay: String,
+                country: String,
+                city: String) {
         self.userName = userName
         self.info = info
         self.sex = sex
@@ -63,7 +63,7 @@ struct ProfileNetworkModel: ProfileNetworkModelProtocol {
         self.postsCount = 0
     }
     
-     public func convertModelToDictionary() -> [String: Any] { //For send Model to Firebase as Dictionary
+    public func convertModelToDictionary() -> [String: Any] { //For send Model to Firebase as Dictionary
         var muserDictionary: [String: Any] = ["uid":id]
         muserDictionary["username"] = userName
         muserDictionary["info"] = info
@@ -79,7 +79,7 @@ struct ProfileNetworkModel: ProfileNetworkModelProtocol {
         return muserDictionary
     }
     
-     init?(dict: [String: Any]) {
+    init?(dict: [String: Any]) {
         guard let userName = dict["username"] as? String,
               let info = dict["info"] as? String,
               let sex = dict["sex"] as? String,
