@@ -26,7 +26,7 @@ public protocol ProfileNetworkModelProtocol {
 }
 
 //MARK: FirebaseFirestore
-struct ProfileNetworkModel: ProfileNetworkModelProtocol {
+public struct ProfileNetworkModel: ProfileNetworkModelProtocol {
     
     public var userName: String
     public var info: String
