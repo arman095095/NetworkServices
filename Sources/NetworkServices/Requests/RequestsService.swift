@@ -18,6 +18,8 @@ public protocol RequestsServiceProtocol: AnyObject {
     func requestIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ())
     func initRequestsSocket(userID: String,
                                    completion: @escaping (Result<(add: [String],removed: [String]), Error>) -> Void) -> SocketProtocol
+    func initSendedRequestsSocket(userID: String,
+                                         completion: @escaping (Result<(add: [String], removed: [String]), Error>) -> Void) -> SocketProtocol
     func initFriendsSocket(userID: String,
                            completion: @escaping (Result<(add: [String],removed: [String]), Error>) -> Void) -> SocketProtocol
 }
@@ -42,6 +44,31 @@ extension RequestsService: RequestsServiceProtocol {
     public func initRequestsSocket(userID: String,
                                    completion: @escaping (Result<(add: [String],removed: [String]), Error>) -> Void) -> SocketProtocol {
         let listener =  usersRef.document(userID).collection(URLComponents.Paths.waitingUsers.rawValue).addSnapshotListener { querySnapshot, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let querySnapshot = querySnapshot else { return }
+            var newRequests = [String]()
+            var removedRequest = [String]()
+            querySnapshot.documentChanges.forEach {
+                switch $0.type {
+                case .added:
+                    newRequests.append($0.document.documentID)
+                case .removed:
+                    removedRequest.append($0.document.documentID)
+                default:
+                    break
+                }
+            }
+            completion(.success((add: newRequests, removed: removedRequest)))
+        }
+        return FirestoreSocketAdapter(adaptee: listener)
+    }
+    
+    public func initSendedRequestsSocket(userID: String,
+                                         completion: @escaping (Result<(add: [String], removed: [String]), Error>) -> Void) -> SocketProtocol {
+        let listener =  usersRef.document(userID).collection(URLComponents.Paths.sendedRequests.rawValue).addSnapshotListener { querySnapshot, error in
             if let error = error {
                 completion(.failure(error))
                 return
