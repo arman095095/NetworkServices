@@ -13,6 +13,7 @@ struct URLComponents {
         case users
         case blocked
         case iamblocked
+        case lookedMessages
         case notifications
         case likers
         case activeChat
