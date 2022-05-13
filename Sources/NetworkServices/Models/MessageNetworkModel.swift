@@ -22,7 +22,7 @@ public protocol MessageNetworkModelProtocol: AnyObject {
     func convertModelToDictionary() -> [String: Any]
 }
 
-final class MessageNetworkModel: MessageNetworkModelProtocol {
+public final class MessageNetworkModel: MessageNetworkModelProtocol {
     public var adressID: String
     public var senderID: String
     public var id: String
@@ -34,16 +34,16 @@ final class MessageNetworkModel: MessageNetworkModelProtocol {
     public var audioDuration: Float?
     public var date: Date?
     
-    init(imageData: Data?,
-         audioURL: String?,
-         photoURL: String?,
-         adressID: String,
-         senderID: String,
-         content: String,
-         imageRatio: Double?,
-         audioDuration: Float?,
-         id: String,
-         date: Date?) {
+    public init(imageData: Data?,
+                audioURL: String?,
+                photoURL: String?,
+                adressID: String,
+                senderID: String,
+                content: String,
+                imageRatio: Double?,
+                audioDuration: Float?,
+                id: String,
+                date: Date?) {
         self.photoURL = photoURL
         self.imageRatio = imageRatio
         self.audioURL = audioURL
