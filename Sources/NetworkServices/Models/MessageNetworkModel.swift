@@ -16,7 +16,6 @@ public protocol MessageNetworkModelProtocol: AnyObject {
     var photoURL: String? { get set }
     var content: String { get }
     var date: Date? { get set }
-    var imageData: Data? { get set }
     var imageRatio: Double? { get set }
     var audioDuration: Float? { get set }
     func convertModelToDictionary() -> [String: Any]
@@ -30,12 +29,10 @@ public final class MessageNetworkModel: MessageNetworkModelProtocol {
     public var photoURL: String?
     public var content: String
     public var imageRatio: Double?
-    public var imageData: Data?
     public var audioDuration: Float?
     public var date: Date?
     
-    public init(imageData: Data?,
-                audioURL: String?,
+    public init(audioURL: String?,
                 photoURL: String?,
                 adressID: String,
                 senderID: String,
@@ -52,7 +49,6 @@ public final class MessageNetworkModel: MessageNetworkModelProtocol {
         self.adressID = adressID
         self.content = content
         self.date = date
-        self.imageData = imageData
         self.id = id
     }
     

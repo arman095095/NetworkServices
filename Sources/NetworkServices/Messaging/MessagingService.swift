@@ -11,14 +11,14 @@ import UIKit
 
 public protocol MessagingServiceProtocol {
     func send(message: MessageNetworkModelProtocol, completion: @escaping (Result<Void, Error>) -> Void)
-    func initMessagesSocket(accountID: String, from id: String, completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol?
+    func initMessagesSocket(accountID: String, from id: String, completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol
     func sendLookedMessages(from id: String, for friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
-    func initlookedSendedMessagesSocket(accountID: String, from id: String, completion: @escaping (Bool) -> Void) -> SocketProtocol?
+    func initlookedSendedMessagesSocket(accountID: String, from id: String, completion: @escaping (Bool) -> Void) -> SocketProtocol
     func typingStatus(from id: String, for friendID: String, completion: @escaping (Bool) -> Void)
     func sendDidBeganTyping(from id: String, friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
     func sendDidFinishTyping(from id: String, friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
-    func initDidBeganTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool) -> Void) -> SocketProtocol?
-    func initDidFinishedTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool) -> Void) -> SocketProtocol?
+    func initDidBeganTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool) -> Void) -> SocketProtocol
+    func initDidFinishedTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool) -> Void) -> SocketProtocol
 }
 
 public final class MessagingService {
@@ -69,7 +69,7 @@ extension MessagingService: MessagingServiceProtocol {
             }
     }
     
-    public func initMessagesSocket(accountID: String, from id: String, completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol? {
+    public func initMessagesSocket(accountID: String, from id: String, completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol {
         let ref = usersRef
             .document(accountID)
             .collection(URLComponents.Paths.friendIDs.rawValue)
@@ -111,7 +111,7 @@ extension MessagingService: MessagingServiceProtocol {
             }
     }
     
-    public func initlookedSendedMessagesSocket(accountID: String, from id: String, completion: @escaping (Bool) -> Void) -> SocketProtocol? {
+    public func initlookedSendedMessagesSocket(accountID: String, from id: String, completion: @escaping (Bool) -> Void) -> SocketProtocol {
         let ref = usersRef
             .document(accountID)
             .collection(URLComponents.Paths.friendIDs.rawValue)
@@ -202,7 +202,7 @@ extension MessagingService: MessagingServiceProtocol {
             }
     }
     
-    public func initDidBeganTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool) -> Void) -> SocketProtocol? {
+    public func initDidBeganTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool) -> Void) -> SocketProtocol {
         let ref = usersRef
             .document(id)
             .collection(URLComponents.Paths.friendIDs.rawValue)
@@ -229,7 +229,7 @@ extension MessagingService: MessagingServiceProtocol {
         return FirestoreSocketAdapter(adaptee: listener)
     }
     
-    public func initDidFinishedTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool) -> Void) -> SocketProtocol? {
+    public func initDidFinishedTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool) -> Void) -> SocketProtocol {
         let ref = usersRef
             .document(id)
             .collection(URLComponents.Paths.friendIDs.rawValue)
@@ -256,58 +256,59 @@ extension MessagingService: MessagingServiceProtocol {
         return FirestoreSocketAdapter(adaptee: listener)
     }
 }
+/*
+public func sendMessage(message: MessageNetworkModelProtocol, completion: @escaping (Result<Void,Error>) -> Void) {
+    if !InternetConnectionManager.isConnectedToNetwork() {
+        completion(.failure(ConnectionError.noInternet))
+    }
+    if let imageData = message.imageData {
+        sendPhotoMessage(message: message, image: imageData, completion: completion)
+    } else if let audioLocalURL = message.audioURL {
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(audioLocalURL)
+        guard let audioData = try? Data(contentsOf: url) else {
+            completion(.failure(NSError(domain: "Error", code: 10, userInfo: nil)))
+            return
+        }
+        sendAudioMessage(message: message, audioData: audioData, completion: completion)
+    } else {
+        sendPreparedMessage(message: message, completion: completion)
+    }
+}
 
-/*public func sendMessage(message: MessageNetworkModelProtocol, completion: @escaping (Result<Void,Error>) -> Void) {
- if !InternetConnectionManager.isConnectedToNetwork() {
- completion(.failure(ConnectionError.noInternet))
- }
- if let imageData = message.imageData {
- sendPhotoMessage(message: message, image: imageData, completion: completion)
- } else if let audioLocalURL = message.audioURL {
- let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(audioLocalURL)
- guard let audioData = try? Data(contentsOf: url) else {
- completion(.failure(NSError(domain: "Error", code: 10, userInfo: nil)))
- return
- }
- sendAudioMessage(message: message, audioData: audioData, completion: completion)
- } else {
- sendPreparedMessage(message: message, completion: completion)
- }
- }
- 
- func sendAudioMessage(message: MessageNetworkModelProtocol, audioData: Data, completion: @escaping (Result<Void,Error>) -> Void) {
- remoteStorage.uploadChat(audio: audioData) { [weak self] (result) in
- switch result {
- case .success(let url):
- message.audioURL = url
- self?.sendPreparedMessage(message: message, completion: completion)
- case .failure(let error):
- completion(.failure(error))
- }
- }
- }
- 
- func sendPhotoMessage(message: MessageNetworkModelProtocol, image: Data, completion: @escaping (Result<Void,Error>) -> Void) {
- remoteStorage.uploadChat(image: image) { [weak self] (result) in
- switch result {
- case .success(let url):
- message.photoURL = url
- self?.sendPreparedMessage(message: message, completion: completion)
- case .failure(let error):
- completion(.failure(error))
- }
- }
- }
- 
- func sendPreparedMessage(message: MessageNetworkModelProtocol, completion: @escaping (Result<Void,Error>) -> Void) {
- let ref = networkServiceRef.collection([URLComponents.Paths.users.rawValue, message.adressID, URLComponents.Paths.messages.rawValue].joined(separator: "/"))
- ref.document(message.id).setData(message.convertModelToDictionary()) { (error) in
- if let error = error {
- completion(.failure(error))
- return
- }
- completion(.success(()))
- }
- }
- }
- */
+func sendAudioMessage(message: MessageNetworkModelProtocol, audioData: Data, completion: @escaping (Result<Void,Error>) -> Void) {
+    remoteStorage.uploadChat(audio: audioData) { [weak self] (result) in
+        switch result {
+        case .success(let url):
+            message.audioURL = url
+            self?.sendPreparedMessage(message: message, completion: completion)
+        case .failure(let error):
+            completion(.failure(error))
+        }
+    }
+}
+
+func sendPhotoMessage(message: MessageNetworkModelProtocol, image: Data, completion: @escaping (Result<Void,Error>) -> Void) {
+    remoteStorage.uploadChat(image: image) { [weak self] (result) in
+        switch result {
+        case .success(let url):
+            message.photoURL = url
+            self?.sendPreparedMessage(message: message, completion: completion)
+        case .failure(let error):
+            completion(.failure(error))
+        }
+    }
+}
+
+func sendPreparedMessage(message: MessageNetworkModelProtocol, completion: @escaping (Result<Void,Error>) -> Void) {
+    let ref = networkServiceRef.collection([URLComponents.Paths.users.rawValue, message.adressID, URLComponents.Paths.messages.rawValue].joined(separator: "/"))
+    ref.document(message.id).setData(message.convertModelToDictionary()) { (error) in
+        if let error = error {
+            completion(.failure(error))
+            return
+        }
+        completion(.success(()))
+    }
+}
+}
+
+*/
