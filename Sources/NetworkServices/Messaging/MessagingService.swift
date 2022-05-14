@@ -75,8 +75,7 @@ extension MessagingService: MessagingServiceProtocol {
             .collection(URLComponents.Paths.friendIDs.rawValue)
             .document(id)
             .collection(URLComponents.Paths.messages.rawValue)
-        
-        let listener = ref.addSnapshotListener { (querySnapshot, error) in
+        let handler: ((QuerySnapshot?, Error?) -> ()) = { (querySnapshot, error) in
             if let error = error {
                 completion(.failure(error))
                 return
@@ -85,15 +84,16 @@ extension MessagingService: MessagingServiceProtocol {
             var newMessages = [MessageNetworkModelProtocol]()
             querySnapshot.documentChanges.forEach { change in
                 guard case .added = change.type else { return }
-                guard let message = MessageNetworkModel(queryDocumentSnapshot: change.document),
-                      let date = message.date else { return }
-                guard let lastMessageDate = lastMessageDate else {
-                    newMessages.append(message)
-                    return
-                }
-                guard date > lastMessageDate else { return }
+                guard let message = MessageNetworkModel(queryDocumentSnapshot: change.document) else { return }
                 newMessages.append(message)
             }
+        }
+        var listener: ListenerRegistration
+        if let lastMessageDate = lastMessageDate {
+            let query = ref.whereField(URLComponents.Parameters.date.rawValue, isGreaterThan: lastMessageDate)
+            listener = query.addSnapshotListener(handler)
+        } else {
+            listener = ref.addSnapshotListener(handler)
         }
         return FirestoreSocketAdapter(adaptee: listener)
     }
