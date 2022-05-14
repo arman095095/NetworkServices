@@ -13,12 +13,11 @@ public protocol MessagingServiceProtocol {
     func send(message: MessageNetworkModelProtocol, completion: @escaping (Result<Void, Error>) -> Void)
     func initMessagesSocket(lastMessageDate: Date?, accountID: String, from id: String, completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol
     func sendLookedMessages(from id: String, for friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
-    func initlookedSendedMessagesSocket(accountID: String, from id: String, completion: @escaping (Bool) -> Void) -> SocketProtocol
+    func initLookedSendedMessagesSocket(accountID: String, from id: String, completion: @escaping (Bool) -> Void) -> SocketProtocol
     func typingStatus(from id: String, for friendID: String, completion: @escaping (Bool) -> Void)
     func sendDidBeganTyping(from id: String, friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
     func sendDidFinishTyping(from id: String, friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
-    func initDidBeganTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool) -> Void) -> SocketProtocol
-    func initDidFinishedTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool) -> Void) -> SocketProtocol
+    func initTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool?) -> Void) -> SocketProtocol
 }
 
 public final class MessagingService {
@@ -117,7 +116,7 @@ extension MessagingService: MessagingServiceProtocol {
             }
     }
     
-    public func initlookedSendedMessagesSocket(accountID: String, from id: String, completion: @escaping (Bool) -> Void) -> SocketProtocol {
+    public func initLookedSendedMessagesSocket(accountID: String, from id: String, completion: @escaping (Bool) -> Void) -> SocketProtocol {
         let ref = usersRef
             .document(accountID)
             .collection(URLComponents.Paths.friendIDs.rawValue)
@@ -208,7 +207,7 @@ extension MessagingService: MessagingServiceProtocol {
             }
     }
     
-    public func initDidBeganTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool) -> Void) -> SocketProtocol {
+    public func initTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool?) -> Void) -> SocketProtocol {
         let ref = usersRef
             .document(id)
             .collection(URLComponents.Paths.friendIDs.rawValue)
@@ -217,46 +216,21 @@ extension MessagingService: MessagingServiceProtocol {
         
         let listener = ref.addSnapshotListener { (querySnapshot, error) in
             if let _ = error {
-                completion(false)
+                completion(nil)
                 return
             }
             guard let querySnapshot = querySnapshot,
                   let first = querySnapshot.documentChanges.first else {
-                completion(false)
+                completion(nil)
                 return
             }
             switch first.type {
             case .added:
                 completion(true)
-            default:
-                completion(false)
-            }
-        }
-        return FirestoreSocketAdapter(adaptee: listener)
-    }
-    
-    public func initDidFinishedTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool) -> Void) -> SocketProtocol {
-        let ref = usersRef
-            .document(id)
-            .collection(URLComponents.Paths.friendIDs.rawValue)
-            .document(friendID)
-            .collection(URLComponents.Paths.typing.rawValue)
-        
-        let listener = ref.addSnapshotListener { (querySnapshot, error) in
-            if let _ = error {
-                completion(false)
-                return
-            }
-            guard let querySnapshot = querySnapshot,
-                  let first = querySnapshot.documentChanges.first else {
-                completion(false)
-                return
-            }
-            switch first.type {
             case .removed:
-                completion(true)
-            default:
                 completion(false)
+            default:
+                completion(nil)
             }
         }
         return FirestoreSocketAdapter(adaptee: listener)
