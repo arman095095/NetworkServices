@@ -11,7 +11,7 @@ import UIKit
 
 public protocol MessagingServiceProtocol {
     func send(message: MessageNetworkModelProtocol, completion: @escaping (Result<Void, Error>) -> Void)
-    func initMessagesSocket(accountID: String, from id: String, completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol
+    func initMessagesSocket(lastMessageDate: Date?, accountID: String, from id: String, completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol
     func sendLookedMessages(from id: String, for friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
     func initlookedSendedMessagesSocket(accountID: String, from id: String, completion: @escaping (Bool) -> Void) -> SocketProtocol
     func typingStatus(from id: String, for friendID: String, completion: @escaping (Bool) -> Void)
@@ -69,7 +69,7 @@ extension MessagingService: MessagingServiceProtocol {
             }
     }
     
-    public func initMessagesSocket(accountID: String, from id: String, completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol {
+    public func initMessagesSocket(lastMessageDate: Date?, accountID: String, from id: String, completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol {
         let ref = usersRef
             .document(accountID)
             .collection(URLComponents.Paths.friendIDs.rawValue)
@@ -85,7 +85,13 @@ extension MessagingService: MessagingServiceProtocol {
             var newMessages = [MessageNetworkModelProtocol]()
             querySnapshot.documentChanges.forEach { change in
                 guard case .added = change.type else { return }
-                guard let message = MessageNetworkModel(queryDocumentSnapshot: change.document) else { return }
+                guard let message = MessageNetworkModel(queryDocumentSnapshot: change.document),
+                      let date = message.date else { return }
+                guard let lastMessageDate = lastMessageDate else {
+                    newMessages.append(message)
+                    return
+                }
+                guard date > lastMessageDate else { return }
                 newMessages.append(message)
             }
         }
