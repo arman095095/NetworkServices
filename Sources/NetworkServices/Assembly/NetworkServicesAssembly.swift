@@ -37,5 +37,9 @@ public final class NetworkServicesAssembly: Assembly {
         container.register(RequestsServiceProtocol.self) { r in
             RequestsService(networkService: Firestore.firestore())
         }
+        
+        container.register(MessagingServiceProtocol.self) { r in
+            MessagingService(networkService: Firestore.firestore())
+        }
     }
 }
