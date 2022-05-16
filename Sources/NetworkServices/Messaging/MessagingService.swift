@@ -18,6 +18,7 @@ public protocol MessagingServiceProtocol {
     func sendDidBeganTyping(from id: String, friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
     func sendDidFinishTyping(from id: String, friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
     func initTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool?) -> Void) -> SocketProtocol
+    func removeChat(from id: String, for friendID: String)
 }
 
 public final class MessagingService {
@@ -37,6 +38,53 @@ public final class MessagingService {
 }
 
 extension MessagingService: MessagingServiceProtocol {
+    public func removeChat(from id: String, for friendID: String) {
+        let myRefMessages = usersRef
+            .document(id)
+            .collection(URLComponents.Paths.friendIDs.rawValue)
+            .document(friendID)
+            .collection(URLComponents.Paths.messages.rawValue)
+        myRefMessages.getDocuments { querySnapshot, error in
+            querySnapshot?.documents.forEach {
+                myRefMessages.document($0.documentID).delete()
+            }
+            
+        }
+        let friendRefMessages = usersRef
+            .document(friendID)
+            .collection(URLComponents.Paths.friendIDs.rawValue)
+            .document(id)
+            .collection(URLComponents.Paths.messages.rawValue)
+        friendRefMessages.getDocuments { querySnapshot, error in
+            querySnapshot?.documents.forEach {
+                friendRefMessages.document($0.documentID).delete()
+            }
+            
+        }
+        let myRefNotLooked = usersRef
+            .document(id)
+            .collection(URLComponents.Paths.friendIDs.rawValue)
+            .document(friendID)
+            .collection(URLComponents.Paths.lookedMessages.rawValue)
+        myRefNotLooked.getDocuments { querySnapshot, error in
+            querySnapshot?.documents.forEach {
+                myRefNotLooked.document($0.documentID).delete()
+            }
+            
+        }
+        let friendRefNotLooked = usersRef
+            .document(friendID)
+            .collection(URLComponents.Paths.friendIDs.rawValue)
+            .document(id)
+            .collection(URLComponents.Paths.lookedMessages.rawValue)
+        friendRefNotLooked.getDocuments { querySnapshot, error in
+            querySnapshot?.documents.forEach {
+                friendRefNotLooked.document($0.documentID).delete()
+            }
+            
+        }
+    }
+    
     public func send(message: MessageNetworkModelProtocol, completion: @escaping (Result<Void, Error>) -> Void) {
         if !InternetConnectionManager.isConnectedToNetwork() {
             completion(.failure(ConnectionError.noInternet))
@@ -236,59 +284,3 @@ extension MessagingService: MessagingServiceProtocol {
         return FirestoreSocketAdapter(adaptee: listener)
     }
 }
-/*
-public func sendMessage(message: MessageNetworkModelProtocol, completion: @escaping (Result<Void,Error>) -> Void) {
-    if !InternetConnectionManager.isConnectedToNetwork() {
-        completion(.failure(ConnectionError.noInternet))
-    }
-    if let imageData = message.imageData {
-        sendPhotoMessage(message: message, image: imageData, completion: completion)
-    } else if let audioLocalURL = message.audioURL {
-        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(audioLocalURL)
-        guard let audioData = try? Data(contentsOf: url) else {
-            completion(.failure(NSError(domain: "Error", code: 10, userInfo: nil)))
-            return
-        }
-        sendAudioMessage(message: message, audioData: audioData, completion: completion)
-    } else {
-        sendPreparedMessage(message: message, completion: completion)
-    }
-}
-
-func sendAudioMessage(message: MessageNetworkModelProtocol, audioData: Data, completion: @escaping (Result<Void,Error>) -> Void) {
-    remoteStorage.uploadChat(audio: audioData) { [weak self] (result) in
-        switch result {
-        case .success(let url):
-            message.audioURL = url
-            self?.sendPreparedMessage(message: message, completion: completion)
-        case .failure(let error):
-            completion(.failure(error))
-        }
-    }
-}
-
-func sendPhotoMessage(message: MessageNetworkModelProtocol, image: Data, completion: @escaping (Result<Void,Error>) -> Void) {
-    remoteStorage.uploadChat(image: image) { [weak self] (result) in
-        switch result {
-        case .success(let url):
-            message.photoURL = url
-            self?.sendPreparedMessage(message: message, completion: completion)
-        case .failure(let error):
-            completion(.failure(error))
-        }
-    }
-}
-
-func sendPreparedMessage(message: MessageNetworkModelProtocol, completion: @escaping (Result<Void,Error>) -> Void) {
-    let ref = networkServiceRef.collection([URLComponents.Paths.users.rawValue, message.adressID, URLComponents.Paths.messages.rawValue].joined(separator: "/"))
-    ref.document(message.id).setData(message.convertModelToDictionary()) { (error) in
-        if let error = error {
-            completion(.failure(error))
-            return
-        }
-        completion(.success(()))
-    }
-}
-}
-
-*/
