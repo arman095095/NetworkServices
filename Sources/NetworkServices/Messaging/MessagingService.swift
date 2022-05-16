@@ -15,6 +15,7 @@ public protocol MessagingServiceProtocol {
     func sendLookedMessages(from id: String, for friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
     func initLookedSendedMessagesSocket(accountID: String, from id: String, completion: @escaping (Bool) -> Void) -> SocketProtocol
     func typingStatus(from id: String, for friendID: String, completion: @escaping (Bool) -> Void)
+    func getMessages(from id: String, friendID: String, completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void)
     func sendDidBeganTyping(from id: String, friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
     func sendDidFinishTyping(from id: String, friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
     func initTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool?) -> Void) -> SocketProtocol
@@ -38,6 +39,27 @@ public final class MessagingService {
 }
 
 extension MessagingService: MessagingServiceProtocol {
+
+    public func getMessages(from id: String, friendID: String, completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) {
+        let ref = usersRef
+            .document(id)
+            .collection(URLComponents.Paths.friendIDs.rawValue)
+            .document(friendID)
+            .collection(URLComponents.Paths.messages.rawValue)
+        ref.getDocuments { querySnapshot, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            var messages = [MessageNetworkModelProtocol]()
+            querySnapshot?.documents.forEach {
+                guard let message = MessageNetworkModel(queryDocumentSnapshot: $0) else { return }
+                messages.append(message)
+            }
+            completion(.success(messages))
+        }
+    }
+    
     public func removeChat(from id: String, for friendID: String) {
         let myRefMessages = usersRef
             .document(id)
