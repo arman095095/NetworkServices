@@ -15,7 +15,7 @@ public protocol MessagingServiceProtocol {
     func sendLookedMessages(from id: String, for friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
     func initLookedSendedMessagesSocket(accountID: String, from id: String, completion: @escaping (Bool) -> Void) -> SocketProtocol
     func typingStatus(from id: String, for friendID: String, completion: @escaping (Bool) -> Void)
-    func getMessages(from id: String, friendID: String, completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void)
+    func getMessages(from id: String, friendID: String, lastDate: Date? ,completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void)
     func sendDidBeganTyping(from id: String, friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
     func sendDidFinishTyping(from id: String, friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
     func initTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool?) -> Void) -> SocketProtocol
@@ -40,13 +40,14 @@ public final class MessagingService {
 
 extension MessagingService: MessagingServiceProtocol {
 
-    public func getMessages(from id: String, friendID: String, completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) {
+    public func getMessages(from id: String, friendID: String, lastDate: Date? ,completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) {
         let ref = usersRef
             .document(id)
             .collection(URLComponents.Paths.friendIDs.rawValue)
             .document(friendID)
             .collection(URLComponents.Paths.messages.rawValue)
-        ref.getDocuments { querySnapshot, error in
+        
+        let handler: ((QuerySnapshot?, Error?) -> ()) = { querySnapshot, error in
             if let error = error {
                 completion(.failure(error))
                 return
@@ -57,6 +58,12 @@ extension MessagingService: MessagingServiceProtocol {
                 messages.append(message)
             }
             completion(.success(messages))
+        }
+        
+        if let lastDate = lastDate {
+            ref.whereField(URLComponents.Parameters.date.rawValue, isGreaterThan: lastDate).getDocuments(completion: handler)
+        } else {
+            ref.getDocuments(completion: handler)
         }
     }
     
