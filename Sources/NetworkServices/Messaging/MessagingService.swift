@@ -19,7 +19,7 @@ public protocol MessagingServiceProtocol {
     func sendDidBeganTyping(from id: String, friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
     func sendDidFinishTyping(from id: String, friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
     func initTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool?) -> Void) -> SocketProtocol
-    func removeChat(from id: String, for friendID: String)
+    func removeChat(from id: String, for friendID: String, completion: @escaping () -> ())
 }
 
 public final class MessagingService {
@@ -67,7 +67,7 @@ extension MessagingService: MessagingServiceProtocol {
         }
     }
     
-    public func removeChat(from id: String, for friendID: String) {
+    public func removeChat(from id: String, for friendID: String, completion: @escaping () -> ()) {
         let myRefMessages = usersRef
             .document(id)
             .collection(URLComponents.Paths.friendIDs.rawValue)
