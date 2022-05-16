@@ -134,6 +134,7 @@ extension MessagingService: MessagingServiceProtocol {
                 guard let message = MessageNetworkModel(queryDocumentSnapshot: change.document) else { return }
                 newMessages.append(message)
             }
+            completion(.success(newMessages))
         }
         var listener: ListenerRegistration
         if let lastMessageDate = lastMessageDate {
