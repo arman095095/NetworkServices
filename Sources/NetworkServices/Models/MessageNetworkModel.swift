@@ -8,6 +8,13 @@
 import Foundation
 import FirebaseFirestore
 
+public enum MessageStatus: String {
+    case sended
+    case looked
+    case incomingNew
+    case incoming
+}
+
 public protocol MessageNetworkModelProtocol: AnyObject {
     var adressID: String { get }
     var senderID: String { get }
@@ -18,6 +25,7 @@ public protocol MessageNetworkModelProtocol: AnyObject {
     var date: Date? { get set }
     var imageRatio: Double? { get set }
     var audioDuration: Float? { get set }
+    var status: MessageStatus { get set }
     func convertModelToDictionary() -> [String: Any]
 }
 
@@ -31,6 +39,7 @@ public final class MessageNetworkModel: MessageNetworkModelProtocol {
     public var imageRatio: Double?
     public var audioDuration: Float?
     public var date: Date?
+    public var status: MessageStatus
     
     public init(audioURL: String?,
                 photoURL: String?,
@@ -50,6 +59,7 @@ public final class MessageNetworkModel: MessageNetworkModelProtocol {
         self.content = content
         self.date = date
         self.id = id
+        self.status = .sended
     }
     
     init?(queryDocumentSnapshot: QueryDocumentSnapshot) {
@@ -59,7 +69,9 @@ public final class MessageNetworkModel: MessageNetworkModelProtocol {
               let id = mmessegeDictionary["id"] as? String,
               let date = mmessegeDictionary["date"] as? Timestamp,
               let content = mmessegeDictionary["content"] as? String,
-              let adressID = mmessegeDictionary["adressID"] as? String
+              let adressID = mmessegeDictionary["adressID"] as? String,
+              let statusString = mmessegeDictionary["status"] as? String,
+              let status = MessageStatus(rawValue: statusString)
         else { return nil }
         
         if let urlPhotoString = mmessegeDictionary["photoURL"] as? String,
@@ -74,6 +86,7 @@ public final class MessageNetworkModel: MessageNetworkModelProtocol {
         self.senderID = senderID
         self.adressID = adressID
         self.content = content
+        self.status = status
         self.date = date.dateValue()
         self.id = id
     }
@@ -85,6 +98,7 @@ public final class MessageNetworkModel: MessageNetworkModelProtocol {
         mmessegeDictionary["adressID"] = adressID
         mmessegeDictionary["id"] = id
         mmessegeDictionary["content"] = content
+        mmessegeDictionary["status"] = status.rawValue
         
         if let photoUrl = self.photoURL {
             mmessegeDictionary["photoURL"] = photoUrl

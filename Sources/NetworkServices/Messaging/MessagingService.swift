@@ -119,9 +119,9 @@ extension MessagingService: MessagingServiceProtocol {
             completion(.failure(ConnectionError.noInternet))
         }
         usersRef
-            .document(message.adressID)
-            .collection(URLComponents.Paths.friendIDs.rawValue)
             .document(message.senderID)
+            .collection(URLComponents.Paths.friendIDs.rawValue)
+            .document(message.adressID)
             .collection(URLComponents.Paths.messages.rawValue)
             .document(message.id)
             .setData(message.convertModelToDictionary()) { error in
@@ -129,10 +129,11 @@ extension MessagingService: MessagingServiceProtocol {
                     completion(.failure(error))
                     return
                 }
+                message.status = .incomingNew
                 self.usersRef
-                    .document(message.senderID)
-                    .collection(URLComponents.Paths.friendIDs.rawValue)
                     .document(message.adressID)
+                    .collection(URLComponents.Paths.friendIDs.rawValue)
+                    .document(message.senderID)
                     .collection(URLComponents.Paths.messages.rawValue)
                     .document(message.id)
                     .setData(message.convertModelToDictionary()) { error in
