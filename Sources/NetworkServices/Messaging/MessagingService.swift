@@ -16,9 +16,9 @@ public protocol MessagingServiceProtocol {
                                accountID: String,
                                from id: String,
                                completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol
-    func initEditedMessagesSocket(accountID: String,
+    func initLookedMessagesSocket(accountID: String,
                                   from id: String,
-                                  completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol
+                                  completion: @escaping (Result<Void, Error>) -> Void) -> SocketProtocol
     func sendLookedMessages(from id: String,
                             for friendID: String,
                             messageIDs: [String],
@@ -203,32 +203,6 @@ extension MessagingService: MessagingServiceProtocol {
         return FirestoreSocketAdapter(adaptee: listener)
     }
     
-    public func initEditedMessagesSocket(accountID: String,
-                                         from id: String,
-                                         completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol {
-        let ref = usersRef
-            .document(accountID)
-            .collection(URLComponents.Paths.friendIDs.rawValue)
-            .document(id)
-            .collection(URLComponents.Paths.messages.rawValue)
-
-        let listener = ref.addSnapshotListener { query, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-            guard let querySnapshot = query, !querySnapshot.isEmpty else { return }
-            var editedMessages = [MessageNetworkModelProtocol]()
-            querySnapshot.documentChanges.forEach { change in
-                guard case .modified = change.type else { return }
-                guard let message = MessageNetworkModel(queryDocumentSnapshot: change.document) else { return }
-                editedMessages.append(message)
-            }
-            completion(.success(editedMessages))
-        }
-        return FirestoreSocketAdapter(adaptee: listener)
-    }
-    
     public func sendLookedMessages(from id: String,
                                    for friendID: String,
                                    messageIDs: [String],
@@ -243,15 +217,44 @@ extension MessagingService: MessagingServiceProtocol {
                 .document(id)
                 .collection(URLComponents.Paths.messages.rawValue)
                 .document($0)
-                .updateData([URLComponents.Parameters.status.rawValue: MessageStatus.looked])
+                .updateData([URLComponents.Parameters.status.rawValue: MessageStatus.looked.rawValue])
             usersRef
                 .document(id)
                 .collection(URLComponents.Paths.friendIDs.rawValue)
                 .document(friendID)
                 .collection(URLComponents.Paths.messages.rawValue)
                 .document($0)
-                .updateData([URLComponents.Parameters.status.rawValue: MessageStatus.incoming])
+                .updateData([URLComponents.Parameters.status.rawValue: MessageStatus.incoming.rawValue])
         }
+        usersRef
+            .document(friendID)
+            .collection(URLComponents.Paths.friendIDs.rawValue)
+            .document(id)
+            .collection(URLComponents.Paths.lookedMessages.rawValue)
+            .addDocument(data: [URLComponents.Parameters.id.rawValue: UUID().uuidString])
+    }
+    
+    public func initLookedMessagesSocket(accountID: String,
+                                         from id: String,
+                                         completion: @escaping (Result<Void, Error>) -> Void) -> SocketProtocol {
+        let ref = usersRef
+            .document(accountID)
+            .collection(URLComponents.Paths.friendIDs.rawValue)
+            .document(id)
+            .collection(URLComponents.Paths.lookedMessages.rawValue)
+        let listener = ref.addSnapshotListener { query, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                guard let querySnapshot = query else { return }
+                querySnapshot.documentChanges.forEach { change in
+                    guard case .added = change.type else { return }
+                    ref.document(change.document.documentID).delete()
+                    completion(.success(()))
+                }
+            }
+        return FirestoreSocketAdapter(adaptee: listener)
     }
     
     public func typingStatus(from id: String, for friendID: String, completion: @escaping (Bool) -> Void) {

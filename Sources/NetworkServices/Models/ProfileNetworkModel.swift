@@ -64,35 +64,35 @@ public struct ProfileNetworkModel: ProfileNetworkModelProtocol {
     }
     
     public func convertModelToDictionary() -> [String: Any] { //For send Model to Firebase as Dictionary
-        var muserDictionary: [String: Any] = ["uid":id]
-        muserDictionary["username"] = userName
-        muserDictionary["info"] = info
-        muserDictionary["sex"] = sex
-        muserDictionary["imageURL"] = imageUrl
-        muserDictionary["birthday"] = birthday
-        muserDictionary["country"] = country
-        muserDictionary["city"] = city
-        muserDictionary["removed"] = removed
-        muserDictionary["online"] = online
-        muserDictionary["lastActivity"] = FieldValue.serverTimestamp()
+        var muserDictionary: [String: Any] = [URLComponents.Parameters.uid.rawValue:id]
+        muserDictionary[URLComponents.Parameters.username.rawValue] = userName
+        muserDictionary[URLComponents.Parameters.info.rawValue] = info
+        muserDictionary[URLComponents.Parameters.sex.rawValue] = sex
+        muserDictionary[URLComponents.Parameters.imageURL.rawValue] = imageUrl
+        muserDictionary[URLComponents.Parameters.birthday.rawValue] = birthday
+        muserDictionary[URLComponents.Parameters.country.rawValue] = country
+        muserDictionary[URLComponents.Parameters.city.rawValue] = city
+        muserDictionary[URLComponents.Parameters.removed.rawValue] = removed
+        muserDictionary[URLComponents.Parameters.online.rawValue] = online
+        muserDictionary[URLComponents.Parameters.lastActivity.rawValue] = FieldValue.serverTimestamp()
         
         return muserDictionary
     }
     
     init?(dict: [String: Any]) {
-        guard let userName = dict["username"] as? String,
-              let info = dict["info"] as? String,
-              let sex = dict["sex"] as? String,
-              let imageURL = dict["imageURL"] as? String,
-              let birthDay = dict["birthday"] as? String,
-              let country = dict["country"] as? String,
-              let city = dict["city"] as? String,
-              let removed = dict["removed"] as? Bool,
-              let online = dict["online"] as? Bool,
-              let identifier = dict["uid"] as? String else {
+        guard let userName = dict[URLComponents.Parameters.username.rawValue] as? String,
+              let info = dict[URLComponents.Parameters.info.rawValue] as? String,
+              let sex = dict[URLComponents.Parameters.sex.rawValue] as? String,
+              let imageURL = dict[URLComponents.Parameters.imageURL.rawValue] as? String,
+              let birthDay = dict[URLComponents.Parameters.birthday.rawValue] as? String,
+              let country = dict[URLComponents.Parameters.country.rawValue] as? String,
+              let city = dict[URLComponents.Parameters.city.rawValue] as? String,
+              let removed = dict[URLComponents.Parameters.removed.rawValue] as? Bool,
+              let online = dict[URLComponents.Parameters.online.rawValue] as? Bool,
+              let identifier = dict[URLComponents.Parameters.uid.rawValue] as? String else {
             return nil
         }
-        let lastActivity = dict["lastActivity"] as? Timestamp
+        let lastActivity = dict[URLComponents.Parameters.lastActivity.rawValue] as? Timestamp
         self.userName = userName
         self.info = info
         self.sex = sex
@@ -107,3 +107,4 @@ public struct ProfileNetworkModel: ProfileNetworkModelProtocol {
         self.postsCount = 0
     }
 }
+

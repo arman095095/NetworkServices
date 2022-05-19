@@ -49,10 +49,10 @@ public final class PostNetworkModel: PostNetworkModelProtocol {
     }
     
     init?(postDictionary: [String:Any]) {
-        guard let id = postDictionary["id"] as? String,
-              let date = postDictionary["date"] as? Timestamp,
-              let textContent = postDictionary["textContent"] as? String,
-              let userID = postDictionary["userID"] as? String
+        guard let id = postDictionary[URLComponents.Parameters.id.rawValue] as? String,
+              let date = postDictionary[URLComponents.Parameters.date.rawValue] as? Timestamp,
+              let textContent = postDictionary[URLComponents.Parameters.textContent.rawValue] as? String,
+              let userID = postDictionary[URLComponents.Parameters.userID.rawValue] as? String
         else { return nil }
         
         self.userID = userID
@@ -61,11 +61,11 @@ public final class PostNetworkModel: PostNetworkModelProtocol {
         self.date = date.dateValue()
         self.likersIds = []
         
-        if let urlImage = postDictionary["urlImage"] as? String {
+        if let urlImage = postDictionary[URLComponents.Parameters.urlImage.rawValue] as? String {
             self.urlImage = urlImage
         }
-        if let imageHeight = postDictionary["imageHeight"] as? CGFloat,
-           let imageWidth = postDictionary["imageWidth"] as? CGFloat {
+        if let imageHeight = postDictionary[URLComponents.Parameters.imageHeight.rawValue] as? CGFloat,
+           let imageWidth = postDictionary[URLComponents.Parameters.imageWidth.rawValue] as? CGFloat {
             self.imageHeight = imageHeight
             self.imageWidth = imageWidth
         }
@@ -82,18 +82,18 @@ public final class PostNetworkModel: PostNetworkModelProtocol {
     }
     
     public func convertModelToDictionary() -> [String: Any] {
-        var postDictionary: [String:Any] = ["userID": userID]
-        postDictionary["id"] = id
-        postDictionary["textContent"] = textContent
-        postDictionary["date"] = FieldValue.serverTimestamp()
+        var postDictionary: [String:Any] = [URLComponents.Parameters.userID.rawValue: userID]
+        postDictionary[URLComponents.Parameters.id.rawValue] = id
+        postDictionary[URLComponents.Parameters.textContent.rawValue] = textContent
+        postDictionary[URLComponents.Parameters.date.rawValue] = FieldValue.serverTimestamp()
         
         if let urlImage = self.urlImage {
-            postDictionary["urlImage"] = urlImage
+            postDictionary[URLComponents.Parameters.urlImage.rawValue] = urlImage
         }
         if let imageHeight = self.imageHeight,
            let imageWidth = self.imageWidth {
-            postDictionary["imageHeight"] = imageHeight
-            postDictionary["imageWidth"] = imageWidth
+            postDictionary[URLComponents.Parameters.imageHeight.rawValue] = imageHeight
+            postDictionary[URLComponents.Parameters.imageWidth.rawValue] = imageWidth
         }
         return postDictionary
     }

@@ -65,23 +65,23 @@ public final class MessageNetworkModel: MessageNetworkModelProtocol {
     init?(queryDocumentSnapshot: QueryDocumentSnapshot) {
         let mmessegeDictionary = queryDocumentSnapshot.data()
         
-        guard let senderID = mmessegeDictionary["senderID"] as? String,
-              let id = mmessegeDictionary["id"] as? String,
-              let date = mmessegeDictionary["date"] as? Timestamp,
-              let content = mmessegeDictionary["content"] as? String,
-              let adressID = mmessegeDictionary["adressID"] as? String,
-              let statusString = mmessegeDictionary["status"] as? String,
+        guard let senderID = mmessegeDictionary[URLComponents.Parameters.senderID.rawValue] as? String,
+              let id = mmessegeDictionary[URLComponents.Parameters.id.rawValue] as? String,
+              let date = mmessegeDictionary[URLComponents.Parameters.date.rawValue] as? Timestamp,
+              let content = mmessegeDictionary[URLComponents.Parameters.content.rawValue] as? String,
+              let adressID = mmessegeDictionary[URLComponents.Parameters.adressID.rawValue] as? String,
+              let statusString = mmessegeDictionary[URLComponents.Parameters.status.rawValue] as? String,
               let status = MessageStatus(rawValue: statusString)
         else { return nil }
         
-        if let urlPhotoString = mmessegeDictionary["photoURL"] as? String,
-           let imageRatio = mmessegeDictionary["imageRatio"] as? Double {
+        if let urlPhotoString = mmessegeDictionary[URLComponents.Parameters.photoURL.rawValue] as? String,
+           let imageRatio = mmessegeDictionary[URLComponents.Parameters.imageRatio.rawValue] as? Double {
             self.photoURL = urlPhotoString
             self.imageRatio = imageRatio
         }
-        if let audioURL = mmessegeDictionary["audioURL"] as? String {
+        if let audioURL = mmessegeDictionary[URLComponents.Parameters.audioURL.rawValue] as? String {
             self.audioURL = audioURL
-            self.audioDuration = mmessegeDictionary["audioDuration"] as? Float ?? 0.0
+            self.audioDuration = mmessegeDictionary[URLComponents.Parameters.audioDuration.rawValue] as? Float ?? 0.0
         }
         self.senderID = senderID
         self.adressID = adressID
@@ -93,20 +93,20 @@ public final class MessageNetworkModel: MessageNetworkModelProtocol {
     
     public func convertModelToDictionary() -> [String : Any] {
         var mmessegeDictionary: [String: Any] = [:]
-        mmessegeDictionary["date"] = FieldValue.serverTimestamp()
-        mmessegeDictionary["senderID"] = senderID
-        mmessegeDictionary["adressID"] = adressID
-        mmessegeDictionary["id"] = id
-        mmessegeDictionary["content"] = content
-        mmessegeDictionary["status"] = status.rawValue
+        mmessegeDictionary[URLComponents.Parameters.date.rawValue] = FieldValue.serverTimestamp()
+        mmessegeDictionary[URLComponents.Parameters.senderID.rawValue] = senderID
+        mmessegeDictionary[URLComponents.Parameters.adressID.rawValue] = adressID
+        mmessegeDictionary[URLComponents.Parameters.id.rawValue] = id
+        mmessegeDictionary[URLComponents.Parameters.content.rawValue] = content
+        mmessegeDictionary[URLComponents.Parameters.status.rawValue] = status.rawValue
         
         if let photoUrl = self.photoURL {
-            mmessegeDictionary["photoURL"] = photoUrl
-            mmessegeDictionary["imageRatio"] = imageRatio
+            mmessegeDictionary[URLComponents.Parameters.photoURL.rawValue] = photoUrl
+            mmessegeDictionary[URLComponents.Parameters.imageRatio.rawValue] = imageRatio
         }
         if let audioURL = self.audioURL {
-            mmessegeDictionary["audioURL"] = audioURL
-            mmessegeDictionary["audioDuration"] = audioDuration
+            mmessegeDictionary[URLComponents.Parameters.audioURL.rawValue] = audioURL
+            mmessegeDictionary[URLComponents.Parameters.audioDuration.rawValue] = audioDuration
         }
         return mmessegeDictionary
     }

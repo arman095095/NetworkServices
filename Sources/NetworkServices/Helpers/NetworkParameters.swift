@@ -26,6 +26,10 @@ struct URLComponents {
     }
 
     enum Parameters: String {
+        case photoURL
+        case imageRatio
+        case audioURL
+        case audioDuration
         case lastActivity
         case online
         case removed
@@ -36,6 +40,20 @@ struct URLComponents {
         case friendID
         case userID
         case status
+        case content
+        case adressID
+        case textContent
+        case urlImage
+        case imageHeight
+        case imageWidth
+        case uid
+        case username
+        case info
+        case sex
+        case imageURL
+        case birthday
+        case country
+        case city
     }
 }
 
