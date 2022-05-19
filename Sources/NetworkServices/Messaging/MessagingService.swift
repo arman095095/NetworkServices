@@ -10,16 +10,38 @@ import FirebaseFirestore
 import UIKit
 
 public protocol MessagingServiceProtocol {
-    func send(message: MessageNetworkModelProtocol, completion: @escaping (Result<Void, Error>) -> Void)
-    func initMessagesSocket(lastMessageDate: Date?, accountID: String, from id: String, completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol
-    func sendLookedMessages(from id: String, for friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
-    func initLookedSendedMessagesSocket(accountID: String, from id: String, completion: @escaping (Bool) -> Void) -> SocketProtocol
-    func typingStatus(from id: String, for friendID: String, completion: @escaping (Bool) -> Void)
-    func getMessages(from id: String, friendID: String, lastDate: Date? ,completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void)
-    func sendDidBeganTyping(from id: String, friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
-    func sendDidFinishTyping(from id: String, friendID: String, completion: @escaping (Result<Void, Error>) -> Void)
-    func initTypingStatusSocket(from id: String, friendID: String ,completion: @escaping (Bool?) -> Void) -> SocketProtocol
-    func removeChat(from id: String, for friendID: String, completion: @escaping () -> ())
+    func send(message: MessageNetworkModelProtocol,
+              completion: @escaping (Result<Void, Error>) -> Void)
+    func initNewMessagesSocket(lastMessageDate: Date?,
+                               accountID: String,
+                               from id: String,
+                               completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol
+    func initEditedMessagesSocket(accountID: String,
+                                  from id: String,
+                                  completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol
+    func sendLookedMessages(from id: String,
+                            for friendID: String,
+                            messageIDs: [String],
+                            completion: @escaping (Result<Void, Error>) -> Void)
+    func typingStatus(from id: String,
+                      for friendID: String,
+                      completion: @escaping (Bool) -> Void)
+    func getMessages(from id: String,
+                     friendID: String,
+                     lastDate: Date?,
+                     completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void)
+    func sendDidBeganTyping(from id: String,
+                            friendID: String,
+                            completion: @escaping (Result<Void, Error>) -> Void)
+    func sendDidFinishTyping(from id: String,
+                             friendID: String,
+                             completion: @escaping (Result<Void, Error>) -> Void)
+    func initTypingStatusSocket(from id: String,
+                                friendID: String,
+                                completion: @escaping (Bool?) -> Void) -> SocketProtocol
+    func removeChat(from id: String,
+                    for friendID: String,
+                    completion: @escaping () -> ())
 }
 
 public final class MessagingService {
@@ -39,7 +61,7 @@ public final class MessagingService {
 }
 
 extension MessagingService: MessagingServiceProtocol {
-
+    
     public func getMessages(from id: String, friendID: String, lastDate: Date? ,completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) {
         let ref = usersRef
             .document(id)
@@ -147,7 +169,10 @@ extension MessagingService: MessagingServiceProtocol {
             }
     }
     
-    public func initMessagesSocket(lastMessageDate: Date?, accountID: String, from id: String, completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol {
+    public func initNewMessagesSocket(lastMessageDate: Date?,
+                                      accountID: String,
+                                      from id: String,
+                                      completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol {
         let ref = usersRef
             .document(accountID)
             .collection(URLComponents.Paths.friendIDs.rawValue)
@@ -178,52 +203,55 @@ extension MessagingService: MessagingServiceProtocol {
         return FirestoreSocketAdapter(adaptee: listener)
     }
     
-    public func sendLookedMessages(from id: String, for friendID: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        if !InternetConnectionManager.isConnectedToNetwork() {
-            completion(.failure(ConnectionError.noInternet))
-        }
-        usersRef
-            .document(friendID)
-            .collection(URLComponents.Paths.friendIDs.rawValue)
-            .document(id)
-            .collection(URLComponents.Paths.lookedMessages.rawValue)
-            .document(id)
-            .setData([URLComponents.Parameters.looked.rawValue: id]) { (error) in
-                if let error = error {
-                    completion(.failure(error))
-                    return
-                }
-                completion(.success(()))
-            }
-    }
-    
-    public func initLookedSendedMessagesSocket(accountID: String, from id: String, completion: @escaping (Bool) -> Void) -> SocketProtocol {
+    public func initEditedMessagesSocket(accountID: String,
+                                         from id: String,
+                                         completion: @escaping (Result<[MessageNetworkModelProtocol], Error>) -> Void) -> SocketProtocol {
         let ref = usersRef
             .document(accountID)
             .collection(URLComponents.Paths.friendIDs.rawValue)
             .document(id)
-            .collection(URLComponents.Paths.lookedMessages.rawValue)
-        
-        let listener = ref.addSnapshotListener { (querySnapshot, error) in
-            if let _ = error {
-                completion(false)
+            .collection(URLComponents.Paths.messages.rawValue)
+
+        let listener = ref.addSnapshotListener { query, error in
+            if let error = error {
+                completion(.failure(error))
                 return
             }
-            guard let querySnapshot = querySnapshot,
-                  !querySnapshot.isEmpty,
-                  let first = querySnapshot.documentChanges.first else {
-                completion(false)
-                return
+            guard let querySnapshot = query, !querySnapshot.isEmpty else { return }
+            var editedMessages = [MessageNetworkModelProtocol]()
+            querySnapshot.documentChanges.forEach { change in
+                guard case .modified = change.type else { return }
+                guard let message = MessageNetworkModel(queryDocumentSnapshot: change.document) else { return }
+                editedMessages.append(message)
             }
-            switch first.type {
-            case .added:
-                completion(true)
-                ref.document(first.document.documentID).delete()
-            default:
-                break
-            }
+            completion(.success(editedMessages))
         }
         return FirestoreSocketAdapter(adaptee: listener)
+    }
+    
+    public func sendLookedMessages(from id: String,
+                                   for friendID: String,
+                                   messageIDs: [String],
+                                   completion: @escaping (Result<Void, Error>) -> Void) {
+        if !InternetConnectionManager.isConnectedToNetwork() {
+            completion(.failure(ConnectionError.noInternet))
+        }
+        messageIDs.forEach {
+            usersRef
+                .document(friendID)
+                .collection(URLComponents.Paths.friendIDs.rawValue)
+                .document(id)
+                .collection(URLComponents.Paths.messages.rawValue)
+                .document($0)
+                .updateData([URLComponents.Parameters.status.rawValue: MessageStatus.looked])
+            usersRef
+                .document(id)
+                .collection(URLComponents.Paths.friendIDs.rawValue)
+                .document(friendID)
+                .collection(URLComponents.Paths.messages.rawValue)
+                .document($0)
+                .updateData([URLComponents.Parameters.status.rawValue: MessageStatus.incoming])
+        }
     }
     
     public func typingStatus(from id: String, for friendID: String, completion: @escaping (Bool) -> Void) {

@@ -35,6 +35,7 @@ struct URLComponents {
         case date
         case friendID
         case userID
+        case status
     }
 }
 
