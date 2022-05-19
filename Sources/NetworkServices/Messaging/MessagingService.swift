@@ -55,6 +55,7 @@ extension MessagingService: MessagingServiceProtocol {
             var messages = [MessageNetworkModelProtocol]()
             querySnapshot?.documents.forEach {
                 guard let message = MessageNetworkModel(queryDocumentSnapshot: $0) else { return }
+                guard message.date != lastDate else { return }
                 messages.append(message)
             }
             completion(.success(messages))
@@ -162,6 +163,7 @@ extension MessagingService: MessagingServiceProtocol {
             querySnapshot.documentChanges.forEach { change in
                 guard case .added = change.type else { return }
                 guard let message = MessageNetworkModel(queryDocumentSnapshot: change.document) else { return }
+                guard message.date != lastMessageDate else { return }
                 newMessages.append(message)
             }
             completion(.success(newMessages))
