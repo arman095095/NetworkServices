@@ -7,7 +7,25 @@
 
 import Foundation
 import FirebaseFirestore
+import ModelInterfaces
 import UIKit
+
+enum URLComponents {
+    enum Paths: String {
+        case users
+        case blocked
+        case sendedRequests
+        case friendIDs
+        case waitingUsers
+    }
+    
+    enum Parameters: String {
+        case id
+        case online
+        case lastActivity
+        case removed
+    }
+}
 
 public protocol AccountNetworkServiceProtocol {
     func createAccount(accountID: String,
