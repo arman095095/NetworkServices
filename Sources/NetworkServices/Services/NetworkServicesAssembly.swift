@@ -17,9 +17,5 @@ public final class NetworkServicesAssembly: Assembly {
         container.register(AccountNetworkServiceProtocol.self) { r in
             AccountNetworkService(networkService: Firestore.firestore())
         }
-        
-        container.register(AccountContentNetworkServiceProtocol.self) { r in
-            AccountContentNetworkService(networkService: Firestore.firestore())
-        }
     }
 }
