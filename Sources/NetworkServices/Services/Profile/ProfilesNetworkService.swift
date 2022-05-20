@@ -7,14 +7,14 @@
 
 import FirebaseFirestore
 
-public protocol ProfilesServiceProtocol {
+public protocol ProfilesNetworkServiceProtocol {
     func getProfileInfo(userID: String, completion: @escaping (Result<ProfileNetworkModelProtocol,Error>) -> ())
     func getFirstProfilesIDs(count: Int, completion: @escaping (Result<[String],Error>) -> Void)
     func getNextProfilesIDs(count: Int, completion: @escaping (Result<[String],Error>) -> Void)
     func initProfileSocket(userID: String, completion: @escaping (Result<ProfileNetworkModelProtocol, Error>) -> Void) -> SocketProtocol
 }
 
-final class ProfilesService {
+final class ProfilesNetworkService {
     private let networkServiceRef: Firestore
     private var lastProfile: DocumentSnapshot?
     
@@ -27,7 +27,7 @@ final class ProfilesService {
     }
 }
 
-extension ProfilesService: ProfilesServiceProtocol {
+extension ProfilesNetworkService: ProfilesNetworkServiceProtocol {
     
     public func initProfileSocket(userID: String, completion: @escaping (Result<ProfileNetworkModelProtocol, Error>) -> Void) -> SocketProtocol {
         let listener = usersRef.document(userID).addSnapshotListener { snapshot, error in
@@ -86,7 +86,7 @@ extension ProfilesService: ProfilesServiceProtocol {
     }
 }
 
-private extension ProfilesService {
+private extension ProfilesNetworkService {
 
     func getProfilePostsCount(userID: String, completion: @escaping (Result<Int,Error>) -> ()) {
         usersRef.document(userID).collection(URLComponents.Paths.posts.rawValue).getDocuments { (querySnapshot, error) in

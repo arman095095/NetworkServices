@@ -9,6 +9,16 @@
 import Foundation
 import SystemConfiguration
 
+public enum ConnectionError: LocalizedError {
+    case noInternet
+    public var errorDescription: String? {
+        switch self {
+        case .noInternet:
+            return "Проверьте подключение к интернету"
+        }
+    }
+}
+
 public final class InternetConnectionManager {
     public static func isConnectedToNetwork() -> Bool {
         var zeroAddress = sockaddr_in()

@@ -9,7 +9,7 @@ import Foundation
 import FirebaseFirestore
 import UIKit
 
-public protocol AccountServiceProtocol {
+public protocol AccountNetworkServiceProtocol {
     func createAccount(accountID: String,
                        profile: ProfileNetworkModelProtocol,
                        completion: @escaping (Result<Void, Error>) -> Void)
@@ -32,7 +32,7 @@ public protocol AccountServiceProtocol {
     
 }
 
-final class AccountService {
+final class AccountNetworkService {
     
     private let networkServiceRef: Firestore
 
@@ -48,7 +48,7 @@ final class AccountService {
     }
 }
 
-extension AccountService: AccountServiceProtocol {
+extension AccountNetworkService: AccountNetworkServiceProtocol {
     
     public func getBlockedIds(accountID: String, completion: @escaping (Result<[String], Error>) -> Void) {
         var ids: [String] = []
@@ -157,7 +157,7 @@ extension AccountService: AccountServiceProtocol {
     }
 }
 
-private extension AccountService {
+private extension AccountNetworkService {
     
     func setAccount(accountID: String,
                     user: ProfileNetworkModelProtocol,

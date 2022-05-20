@@ -7,7 +7,7 @@
 
 import FirebaseFirestore
 
-public protocol AccountInfoNetworkServiceProtocol {
+public protocol AccountContentNetworkServiceProtocol {
     func friendIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ())
     func waitingIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ())
     func requestIDs(userID: String, completion: @escaping (Result<[String], Error>) -> ())
@@ -16,7 +16,7 @@ public protocol AccountInfoNetworkServiceProtocol {
     func cancelRequest(toID: String, fromID: String, completion: @escaping (Result<Void, Error>) -> ())
 }
 
-final class AccountInfoNetworkService {
+final class AccountContentNetworkService {
     private let networkServiceRef: Firestore
 
     private var usersRef: CollectionReference {
@@ -31,7 +31,7 @@ final class AccountInfoNetworkService {
     }
 }
 
-extension AccountInfoNetworkService: AccountInfoNetworkServiceProtocol {
+extension AccountContentNetworkService: AccountContentNetworkServiceProtocol {
     public func removeFriend(with friendID: String, from id: String, completion: @escaping (Result<Void, Error>) -> ()) {
         usersRef.document(id).collection(URLComponents.Paths.friendIDs.rawValue).document(friendID).delete { [weak self] error in
             if let error = error {

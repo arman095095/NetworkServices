@@ -20,13 +20,3 @@ public enum GetUserInfoError: LocalizedError {
         }
     }
 }
-
-public enum ConnectionError: LocalizedError {
-    case noInternet
-    public var errorDescription: String? {
-        switch self {
-        case .noInternet:
-            return "Проверьте подключение к интернету"
-        }
-    }
-}

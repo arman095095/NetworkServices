@@ -14,21 +14,20 @@ import FirebaseFirestore
 public final class NetworkServicesAssembly: Assembly {
     public init() { }
     public func assemble(container: Container) {
-    
-        container.register(AccountServiceProtocol.self) { r in
-            AccountService(networkService: Firestore.firestore())
+        container.register(AccountNetworkServiceProtocol.self) { r in
+            AccountNetworkService(networkService: Firestore.firestore())
         }
     
-        container.register(ProfilesServiceProtocol.self) { r in
-            ProfilesService(networkService: Firestore.firestore())
+        container.register(ProfilesNetworkServiceProtocol.self) { r in
+            ProfilesNetworkService(networkService: Firestore.firestore())
         }
         
         container.register(ProfileRemoteStorageServiceProtocol.self) { r in
             ProfileRemoteStorageService(storage: Storage.storage())
         }
         
-        container.register(AccountInfoNetworkServiceProtocol.self) { r in
-            AccountInfoNetworkService(networkService: Firestore.firestore())
+        container.register(AccountContentNetworkServiceProtocol.self) { r in
+            AccountContentNetworkService(networkService: Firestore.firestore())
         }
     }
 }
