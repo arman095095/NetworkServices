@@ -11,11 +11,11 @@ public protocol SocketProtocol {
     func remove()
 }
 
-final class FirestoreSocketAdapter: SocketProtocol {
+public final class FirestoreSocketAdapter: SocketProtocol {
     
     private let adaptee: ListenerRegistration
     
-    init(adaptee: ListenerRegistration) {
+    public init(adaptee: ListenerRegistration) {
         self.adaptee = adaptee
     }
     

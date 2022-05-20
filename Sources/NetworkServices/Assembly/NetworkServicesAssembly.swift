@@ -15,10 +15,6 @@ public final class NetworkServicesAssembly: Assembly {
     public init() { }
     public func assemble(container: Container) {
     
-        container.register(RemoteStorageServiceProtocol.self) { r in
-            RemoteStorageService(storage: Storage.storage())
-        }
-    
         container.register(AccountServiceProtocol.self) { r in
             AccountService(networkService: Firestore.firestore())
         }
@@ -27,16 +23,12 @@ public final class NetworkServicesAssembly: Assembly {
             ProfilesService(networkService: Firestore.firestore())
         }
         
-        container.register(PostsServiceProtocol.self) { r in
-            PostsService(networkService: Firestore.firestore())
+        container.register(ProfileRemoteStorageServiceProtocol.self) { r in
+            ProfileRemoteStorageService(storage: Storage.storage())
         }
         
-        container.register(RequestsServiceProtocol.self) { r in
-            RequestsService(networkService: Firestore.firestore())
-        }
-        
-        container.register(MessagingServiceProtocol.self) { r in
-            MessagingService(networkService: Firestore.firestore())
+        container.register(AccountInfoNetworkServiceProtocol.self) { r in
+            AccountInfoNetworkService(networkService: Firestore.firestore())
         }
     }
 }

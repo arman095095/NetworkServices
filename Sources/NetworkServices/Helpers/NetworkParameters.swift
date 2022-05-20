@@ -7,9 +7,9 @@
 
 import Foundation
 
-struct URLComponents {
+public struct URLComponents {
 
-    enum Paths: String {
+    public enum Paths: String {
         case users
         case blocked
         case iamblocked
@@ -25,7 +25,7 @@ struct URLComponents {
         case friendIDs
     }
 
-    enum Parameters: String {
+    public enum Parameters: String {
         case photoURL
         case imageRatio
         case audioURL
@@ -58,15 +58,15 @@ struct URLComponents {
 }
 
 
-struct StorageURLComponents {
+public struct StorageURLComponents {
     
-    enum Parameters: String {
+    public enum Parameters: String {
         case m4a = ".m4a"
         case audioM4A = "audio/m4a"
         case imageJpeg = "image/jpeg"
     }
     
-    enum Paths: String {
+    public enum Paths: String {
         case avatars = "Avatars"
         case chats = "Chats"
         case posts = "Posts"
