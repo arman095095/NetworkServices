@@ -23,9 +23,7 @@ let package = Package(
     targets: [
         .target(
             name: "NetworkServices",
-            dependencies: [.product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
-                           .product(name: "FirebaseFirestore", package: "firebase-ios-sdk"),
-                           .product(name: "FirebaseStorage", package: "firebase-ios-sdk"),
+            dependencies: [.product(name: "FirebaseFirestore", package: "firebase-ios-sdk"),
                            .product(name: "Swinject", package: "Swinject")])
     ]
 )
