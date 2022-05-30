@@ -7,9 +7,9 @@
 
 import Foundation
 
-enum HTTPMethod {
+public enum HTTPMethod {
     case get
-    case set(documentID: String?)
+    case post(documentID: String?)
     case update(documentID: String)
     case delete(documentID: String)
 }

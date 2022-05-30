@@ -10,33 +10,33 @@ import FirebaseFirestore
 
 public protocol NetworkServiceProtocol {
     func dataTask(with request: NetworkRequest, completion: @escaping (Result<Data, Error>) -> ())
-    func collectionSocketTask(with request: NetworkCollectionRequest, completion: @escaping (Result<(added: Data, removed: Data, edited: Data), Error>) -> ()) -> SocketProtocol
-    func socketDocumentTask(with request: NetworkDocumentRequest, completion: @escaping (Result<Data, Error>) -> ()) -> SocketProtocol
+    func collectionSocketTask(with request: NetworkSocketCollectionRequest, completion: @escaping (Result<(added: Data, removed: Data, edited: Data), Error>) -> ()) -> SocketProtocol
+    func socketDocumentTask(with request: NetworkSocketDocumentRequest, completion: @escaping (Result<Data, Error>) -> ()) -> SocketProtocol
 }
 
-public final class NetworkServiceAdapter {
-    private let baseURLFirestore: Firestore
+public final class FirebaseNetworkServiceAdapter {
+    private let baseURL: Firestore
     
     init(firestore: Firestore) {
-        self.baseURLFirestore = firestore
+        self.baseURL = firestore
     }
 }
 
-extension NetworkServiceAdapter: NetworkServiceProtocol {
+extension FirebaseNetworkServiceAdapter: NetworkServiceProtocol {
     
     public func dataTask(with request: NetworkRequest, completion: @escaping (Result<Data, Error>) -> ()) {
-        let endPoint = baseURLFirestore.collection(request.path)
+        let endPoint = baseURL.collection(request.path)
         switch request.httpMethod {
         case .get:
             getDataTask(endPoint: endPoint, completion: completion)
-        case .set(documentID: let documentID):
+        case .post(documentID: let documentID):
             if let documentID = documentID {
-                setDataTask(endPoint: endPoint,
+                postDataTask(endPoint: endPoint,
                             with: documentID,
                             body: request.body,
                             completion: completion)
             } else {
-                setDataTask(endPoint: endPoint,
+                postDataTask(endPoint: endPoint,
                             body: request.body,
                             completion: completion)
             }
@@ -51,9 +51,9 @@ extension NetworkServiceAdapter: NetworkServiceProtocol {
     }
 }
 
-extension NetworkServiceAdapter {
-    public func collectionSocketTask(with request: NetworkCollectionRequest, completion: @escaping (Result<(added: Data, removed: Data, edited: Data), Error>) -> ()) -> SocketProtocol {
-        let endPoint = baseURLFirestore.collection(request.path)
+extension FirebaseNetworkServiceAdapter {
+    public func collectionSocketTask(with request: NetworkSocketCollectionRequest, completion: @escaping (Result<(added: Data, removed: Data, edited: Data), Error>) -> ()) -> SocketProtocol {
+        let endPoint = baseURL.collection(request.path)
         let listener = endPoint.addSnapshotListener { query, error in
             if let error = error {
                 completion(.failure(error))
@@ -84,8 +84,8 @@ extension NetworkServiceAdapter {
         return FirestoreSocketAdapter(adaptee: listener)
     }
     
-    public func socketDocumentTask(with request: NetworkDocumentRequest, completion: @escaping (Result<Data, Error>) -> ()) -> SocketProtocol {
-        let endPoint = baseURLFirestore.collection(request.path)
+    public func socketDocumentTask(with request: NetworkSocketDocumentRequest, completion: @escaping (Result<Data, Error>) -> ()) -> SocketProtocol {
+        let endPoint = baseURL.collection(request.path)
         let listener = endPoint.document(request.documentID).addSnapshotListener { snapshot, error in
             if let error = error {
                 completion(.failure(error))
@@ -100,7 +100,7 @@ extension NetworkServiceAdapter {
     }
 }
 
-private extension NetworkServiceAdapter {
+private extension FirebaseNetworkServiceAdapter {
     
     func getDataTask(endPoint: CollectionReference, completion: @escaping (Result<Data, Error>) -> ()) {
         endPoint.getDocuments { query, error in
@@ -115,7 +115,7 @@ private extension NetworkServiceAdapter {
         }
     }
     
-    func setDataTask(endPoint: CollectionReference,
+    func postDataTask(endPoint: CollectionReference,
                      with documentID: String,
                      body: [String: Any],
                      completion: @escaping (Result<Data, Error>) -> ()) {
@@ -129,7 +129,7 @@ private extension NetworkServiceAdapter {
         }
     }
     
-    func setDataTask(endPoint: CollectionReference,
+    func postDataTask(endPoint: CollectionReference,
                      body: [String: Any],
                      completion: @escaping (Result<Data, Error>) -> ()) {
         endPoint.addDocument(data: body) { error in
